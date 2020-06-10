@@ -152,7 +152,7 @@ function getJestCommand(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
   const jestOptions = `--json ${shouldCommentCoverage() ? "--coverage" : ""} ${
     context.payload.pull_request?.base.ref
-      ? "--changedSince=" + context.payload.pull_request?.base.ref
+      ? "--changedSince=" + "origin/"+context.payload.pull_request?.base.ref
       : ""
   } --outputFile=${resultsFile}`
   const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
