@@ -171,7 +171,7 @@ async function execJest(cmd: string) {
     await exec(cmd, [], { silent: true })
     console.debug("Jest command executed")
   } catch (e) {
-    console.debug("Jest execution failed. Tests have likely failed.")
+    console.debug("Jest execution failed. Tests have likely failed:", e)
   }
 }
 
