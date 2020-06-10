@@ -102,7 +102,7 @@ export function getCoverageTable(
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
     rows.push([
-      filename.replace(cwd, ""),
+      filename.replace(/(?!.*\/).+/gim, ""),
       summary.statements.pct + "%",
       summary.branches.pct + "%",
       summary.functions.pct + "%",
