@@ -103,7 +103,7 @@ export function getCoverageTable(
     const { data: summary } = data.toSummary()
     rows.push([
       // filename.replace(cwd, ""),
-      filename.substr(filename.lastIndexOf('/') + 1),
+      filename.substr(filename.lastIndexOf("/") + 1),
       summary.statements.pct + "%",
       summary.branches.pct + "%",
       summary.functions.pct + "%",
@@ -148,9 +148,7 @@ function getCheckPayload(results: FormattedTestResults, cwd: string) {
 
 function getJestCommand(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
-  const jestOptions = `--json ${
-    shouldCommentCoverage() ? "--coverage" : ""
-  } ${
+  const jestOptions = `--json ${shouldCommentCoverage() ? "--coverage" : ""} ${
     context.payload.pull_request?.base.ref
       ? "--changedSince=" + context.payload.pull_request?.base.ref
       : ""
@@ -168,7 +166,10 @@ function parseResults(resultsFile: string): FormattedTestResults {
 }
 
 async function execJest(cmd: string) {
-  await exec(cmd, [], { silent: true })
+  try {
+    await exec(cmd, [], { silent: true })
+    console.debug("Jest command executed")
+  } catch (e) {}
 }
 
 function getPullId(): number {
