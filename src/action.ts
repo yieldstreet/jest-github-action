@@ -157,6 +157,7 @@ function getJestCommand(resultsFile: string) {
   const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
   cmd += (isNpm ? " -- " : " ") + jestOptions
   core.debug("Final test command: " + cmd)
+  console.debug("Final test command: " + cmd)
   return cmd
 }
 
