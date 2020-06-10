@@ -167,6 +167,7 @@ function parseResults(resultsFile: string): FormattedTestResults {
     console.debug("Jest results: %j", results)
     return results
   } catch (err) {
+    console.debug("ERROR trying to read results file: %j", err)
     return "empty"
   }
 }
