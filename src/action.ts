@@ -37,22 +37,24 @@ export async function run() {
     // Parse results
     const results = parseResults(RESULTS_FILE)
 
-    // Checks
-    const checkPayload = getCheckPayload(results, CWD)
-    await octokit.checks.create(checkPayload)
+    if (results !== "empty") {
+      // Checks
+      const checkPayload = getCheckPayload(results, CWD)
+      await octokit.checks.create(checkPayload)
 
-    // Coverage comments
-    if (shouldCommentCoverage()) {
-      const comment = getCoverageTable(results, CWD)
-      if (comment) {
-        // await deletePreviousComments(octokit)
-        const commentPayload = getCommentPayload(comment)
-        await octokit.issues.createComment(commentPayload)
+      // Coverage comments
+      if (shouldCommentCoverage()) {
+        const comment = getCoverageTable(results, CWD)
+        if (comment) {
+          // await deletePreviousComments(octokit)
+          const commentPayload = getCommentPayload(comment)
+          await octokit.issues.createComment(commentPayload)
+        }
       }
-    }
 
-    if (!results.success) {
-      core.setFailed("Some jest tests failed.")
+      if (!results.success) {
+        core.setFailed("Some jest tests failed.")
+      }
     }
   } catch (error) {
     console.error(error)
@@ -160,9 +162,13 @@ function getJestCommand(resultsFile: string) {
 }
 
 function parseResults(resultsFile: string): FormattedTestResults {
-  const results = JSON.parse(readFileSync(resultsFile, "utf-8"))
-  console.debug("Jest results: %j", results)
-  return results
+  try {
+    const results = JSON.parse(readFileSync(resultsFile, "utf-8"))
+    console.debug("Jest results: %j", results)
+    return results
+  } catch (err) {
+    return "empty"
+  }
 }
 
 async function execJest(cmd: string) {
