@@ -13,7 +13,7 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-github-action"
-const COVERAGE_HEADER = ":bar_chart:  **Code coverage**\n\n"
+const COVERAGE_HEADER = ":bar_chart:\s\s**Code coverage**\n\n"
 
 export async function run() {
   const CWD = process.cwd() + sep
