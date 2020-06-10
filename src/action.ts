@@ -159,6 +159,7 @@ function getJestCommand(resultsFile: string) {
   cmd += (isNpm ? " -- " : " ") + jestOptions
   core.debug("Final test command: " + cmd)
   console.debug("Final test command: %j", cmd)
+  console.debug("BASE REF: %j", context.payload.pull_request?.base.ref)
   return cmd
 }
 
@@ -175,7 +176,7 @@ function parseResults(resultsFile: string): FormattedTestResults {
 
 async function execJest(cmd: string) {
   try {
-    await exec(cmd)
+    await exec(cmd, [], {})
     console.debug("Jest command executed")
   } catch (err) {
     console.debug("ERROR trying to run the test command: %j", err)
