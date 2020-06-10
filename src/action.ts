@@ -147,7 +147,7 @@ function getCheckPayload(results: FormattedTestResults, cwd: string) {
 
 function getJestCommand(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
-  const jestOptions = `--testLocationInResults --json ${
+  const jestOptions = `--json ${
     shouldCommentCoverage() ? "--coverage" : ""
   } ${
     context.payload.pull_request?.base.ref
