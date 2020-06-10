@@ -150,7 +150,11 @@ function getCheckPayload(results: FormattedTestResults, cwd: string) {
 
 function getJestCommand(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
-  const jestOptions = `--json ${shouldCommentCoverage() ? "--coverage" : ""} --outputFile=${resultsFile}`
+  const jestOptions = `--json ${shouldCommentCoverage() ? "--coverage" : ""} ${
+    context.payload.pull_request?.base.ref
+      ? "--changedSince=" + context.payload.pull_request?.base.ref
+      : ""
+  } --outputFile=${resultsFile}`
   const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
   cmd += (isNpm ? " -- " : " ") + jestOptions
   core.debug("Final test command: " + cmd)
@@ -172,6 +176,7 @@ function parseResults(resultsFile: string): FormattedTestResults {
 
 async function execJest(cmd: string) {
   try {
+    await exec('git fetch origin', [], {})
     await exec(cmd, [], {})
     console.debug("Jest command executed")
   } catch (err) {
