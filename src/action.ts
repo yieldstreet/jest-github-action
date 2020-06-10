@@ -35,7 +35,7 @@ export async function run() {
     const octokit = new GitHub(token)
 
     // Parse results
-    const results = parseResults(RESULTS_FILE)
+    const results = await parseResults(RESULTS_FILE)
 
     if (results !== "empty") {
       // Checks
