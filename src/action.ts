@@ -45,7 +45,7 @@ export async function run() {
     if (shouldCommentCoverage()) {
       const comment = getCoverageTable(results, CWD)
       if (comment) {
-        await deletePreviousComments(octokit)
+        // await deletePreviousComments(octokit)
         const commentPayload = getCommentPayload(comment)
         await octokit.issues.createComment(commentPayload)
       }
@@ -158,7 +158,6 @@ function getJestCommand(resultsFile: string) {
   const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
   cmd += (isNpm ? " -- " : " ") + jestOptions
   core.debug("Final test command: " + cmd)
-  console.debug("Final test command: " + cmd)
   return cmd
 }
 
@@ -173,7 +172,7 @@ async function execJest(cmd: string) {
     await exec(cmd, [], { silent: true })
     console.debug("Jest command executed")
   } catch (e) {
-    console.debug("Jest execution failed. Tests have likely failed:", e)
+    console.debug("Jest execution failed. Tests have likely failed:")
   }
 }
 
