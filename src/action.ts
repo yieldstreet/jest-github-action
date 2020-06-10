@@ -175,9 +175,11 @@ function parseResults(resultsFile: string): FormattedTestResults {
 
 async function execJest(cmd: string) {
   try {
-    await exec(cmd, [], { silent: true })
+    await exec(cmd)
     console.debug("Jest command executed")
-  } catch (e) {}
+  } catch (err) {
+    console.debug("ERROR trying to run the test command: %j", err)
+  }
 }
 
 function getPullId(): number {
