@@ -176,7 +176,6 @@ function parseResults(resultsFile: string): FormattedTestResults {
 
 async function execJest(cmd: string) {
   try {
-    await exec('git fetch origin', [], {})
     await exec(cmd, [], {})
     console.debug("Jest command executed")
   } catch (err) {
