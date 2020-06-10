@@ -150,7 +150,7 @@ function getJestCommand(resultsFile: string) {
   const jestOptions = `--testLocationInResults --json ${
     shouldCommentCoverage() ? "--coverage" : ""
   } ${
-    shouldRunOnlyChangedFiles() && context.payload.pull_request?.base.ref
+    context.payload.pull_request?.base.ref
       ? "--changedSince=" + context.payload.pull_request?.base.ref
       : ""
   } --outputFile=${resultsFile}`
