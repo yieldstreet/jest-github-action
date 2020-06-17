@@ -43,7 +43,7 @@ export async function run() {
     if (results !== "empty") {
       // Get base branch coverage (previous coverage)
       if (context.payload.pull_request?.base.ref) {
-        await exec("git checkout origin " + context.payload.pull_request?.base.ref, [], {})
+        await exec("git checkout origin/" + context.payload.pull_request?.base.ref, [], {})
 
         const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
 
@@ -66,13 +66,15 @@ export async function run() {
 
           if (commentPrev) {
             // await deletePreviousComments(octokit)
-            const commentPayload = getCommentPayload(commentPrev)
-            await octokit.issues.createComment(commentPayload)
+            const commentPayloadPrev = getCommentPayload(commentPrev)
+            console.debug("Comment payload PREV: %j", commentPayloadPrev)
+            await octokit.issues.createComment(commentPayloadPrev)
           }
 
           if (comment) {
             // await deletePreviousComments(octokit)
             const commentPayload = getCommentPayload(comment)
+            console.debug("Comment payload: %j", commentPayload)
             await octokit.issues.createComment(commentPayload)
           }
         }
