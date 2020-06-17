@@ -14,10 +14,13 @@ import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
 const COVERAGE_HEADER = "**Code coverage**\n\n"
+const COVERAGE_HEADER_PREV = "**Previous code coverage**\n\n"
+const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
 export async function run() {
   const CWD = process.cwd() + sep
   const RESULTS_FILE = "./jest.results.json"
+  const RESULTS_FILE_PREV = "./jest.results.prev.json"
 
   try {
     const token = process.env.GITHUB_TOKEN
@@ -38,22 +41,63 @@ export async function run() {
     const results = await parseResults(RESULTS_FILE)
 
     if (results !== "empty") {
-      // Checks
-      const checkPayload = getCheckPayload(results, CWD)
-      await octokit.checks.create(checkPayload)
+      // Get base branch coverage (previous coverage)
+      if (context.payload.pull_request?.base.ref) {
+        await exec("git checkout origin" + context.payload.pull_request?.base.ref, [], {})
 
-      // Coverage comments
-      if (shouldCommentCoverage()) {
-        const comment = getCoverageTable(results, CWD)
-        if (comment) {
-          // await deletePreviousComments(octokit)
-          const commentPayload = getCommentPayload(comment)
-          await octokit.issues.createComment(commentPayload)
+        const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
+
+        await execJest(cmd)
+
+        // Parse prev results
+        const prevResults = await parseResults(RESULTS_FILE_PREV)
+
+        // Checks
+        const checkPayloadPrev = getCheckPayload(prevResults, CWD)
+        const checkPayload = getCheckPayload(results, CWD)
+        await octokit.checks.create(checkPayload)
+        await octokit.checks.create(checkPayloadPrev)
+
+        // Coverage comments
+        if (shouldCommentCoverage()) {
+          const comment = getCoverageTable(results, CWD)
+          console.debug("FILES TO CONSIDER: %j", COVERAGE_FILES_TO_CONSIDER)
+          const commentPrev = getCoverageTable(prevResults, CWD, true)
+
+          if (commentPrev) {
+            // await deletePreviousComments(octokit)
+            const commentPayload = getCommentPayload(commentPrev)
+            await octokit.issues.createComment(commentPayload)
+          }
+
+          if (comment) {
+            // await deletePreviousComments(octokit)
+            const commentPayload = getCommentPayload(comment)
+            await octokit.issues.createComment(commentPayload)
+          }
         }
-      }
 
-      if (!results.success) {
-        core.setFailed("Some jest tests failed.")
+        if (!results.success) {
+          core.setFailed("Some jest tests failed.")
+        }
+      } else {
+        // Checks
+        const checkPayload = getCheckPayload(results, CWD)
+        await octokit.checks.create(checkPayload)
+
+        // Coverage comments
+        if (shouldCommentCoverage()) {
+          const comment = getCoverageTable(results, CWD)
+          if (comment) {
+            // await deletePreviousComments(octokit)
+            const commentPayload = getCommentPayload(comment)
+            await octokit.issues.createComment(commentPayload)
+          }
+        }
+
+        if (!results.success) {
+          core.setFailed("Some jest tests failed.")
+        }
       }
     }
   } catch (error) {
@@ -89,6 +133,7 @@ function shouldRunOnlyChangedFiles(): boolean {
 export function getCoverageTable(
   results: FormattedTestResults,
   cwd: string,
+  isPrev?: boolean,
 ): string | false {
   if (!results.coverageMap) {
     return ""
@@ -103,17 +148,35 @@ export function getCoverageTable(
 
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
-    rows.push([
-      // filename.replace(cwd, ""),
-      filename.substr(filename.lastIndexOf("/") + 1),
-      summary.statements.pct + "%",
-      summary.branches.pct + "%",
-      summary.functions.pct + "%",
-      summary.lines.pct + "%",
-    ])
+
+    if (!isPrev) {
+      COVERAGE_FILES_TO_CONSIDER.push(filename)
+
+      rows.push([
+        // filename.replace(cwd, ""),
+        filename.substr(filename.lastIndexOf("/") + 1),
+        summary.statements.pct + "%",
+        summary.branches.pct + "%",
+        summary.functions.pct + "%",
+        summary.lines.pct + "%",
+      ])
+    }
+
+    if (isPrev && COVERAGE_FILES_TO_CONSIDER.includes(filename)) {
+      rows.push([
+        // filename.replace(cwd, ""),
+        filename.substr(filename.lastIndexOf("/") + 1),
+        summary.statements.pct + "%",
+        summary.branches.pct + "%",
+        summary.functions.pct + "%",
+        summary.lines.pct + "%",
+      ])
+    }
   }
 
-  return COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
+  return isPrev
+    ? COVERAGE_HEADER_PREV + table(rows, { align: ["l", "r", "r", "r", "r"] })
+    : COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
 }
 
 function getCommentPayload(body: string) {
@@ -152,13 +215,26 @@ function getJestCommand(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
   const jestOptions = `--json ${shouldCommentCoverage() ? "--coverage" : ""} ${
     context.payload.pull_request?.base.ref
-      ? "--changedSince=" + "origin/"+context.payload.pull_request?.base.ref
+      ? "--changedSince=" + "origin/" + context.payload.pull_request?.base.ref
       : ""
   } --outputFile=${resultsFile}`
   const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
   cmd += (isNpm ? " -- " : " ") + jestOptions
   core.debug("Final test command: " + cmd)
   console.debug("Final test command: %j", cmd)
+  console.debug("BASE REF: %j", context.payload.pull_request?.base.ref)
+  return cmd
+}
+
+function getJestCommandPrev(resultsFile: string) {
+  let cmd = core.getInput("test-command", { required: false })
+  const jestOptions = `--json ${
+    shouldCommentCoverage() ? "--coverage" : ""
+  } --outputFile=${resultsFile}`
+  const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
+  cmd += (isNpm ? " -- " : " ") + jestOptions
+  core.debug("Final test command: " + cmd)
+  console.debug("Final test PREV command: %j", cmd)
   console.debug("BASE REF: %j", context.payload.pull_request?.base.ref)
   return cmd
 }
