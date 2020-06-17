@@ -13,8 +13,7 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-const COVERAGE_HEADER = "\n\n**Code coverage**\n\n"
-const COVERAGE_HEADER_PREV = "**Previous code coverage**\n\n"
+const COVERAGE_HEADER = "\n\n**Previous code coverage vs Code coverage**\n\n"
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
 export async function run() {
@@ -85,6 +84,8 @@ export async function run() {
             commentPayload.body = commentPayloadNew.body + commentPayloadPrev.body
             // await octokit.issues.createComment(commentPayloadPrev)
           }
+
+          console.debug("Comment payload FINAL: %j", commentPayload)
 
           if (comment) {
             await octokit.issues.createComment(commentPayload)
@@ -188,9 +189,7 @@ export function getCoverageTable(
     }
   }
 
-  return isPrev
-    ? COVERAGE_HEADER_PREV + table(rows, { align: ["l", "r", "r", "r", "r"] })
-    : COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
+  return COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
 }
 
 function getCommentPayload(body: any) {
