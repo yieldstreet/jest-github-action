@@ -13,7 +13,7 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-const COVERAGE_HEADER = "**Code coverage**\n\n"
+const COVERAGE_HEADER = "\n\n**Code coverage**\n\n"
 const COVERAGE_HEADER_PREV = "**Previous code coverage**\n\n"
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
@@ -43,7 +43,11 @@ export async function run() {
     if (results !== "empty") {
       // Get base branch coverage (previous coverage)
       if (context.payload.pull_request?.base.ref) {
-        await exec("git checkout origin/" + context.payload.pull_request?.base.ref, [], {})
+        await exec(
+          "git checkout origin/" + context.payload.pull_request?.base.ref,
+          [],
+          {},
+        )
 
         const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
 
@@ -60,21 +64,29 @@ export async function run() {
 
         // Coverage comments
         if (shouldCommentCoverage()) {
+          let commentPayload, commentPayloadNew: any, commentPayloadPrev: any
           const comment = getCoverageTable(results, CWD)
-          console.debug("FILES TO CONSIDER: %j", COVERAGE_FILES_TO_CONSIDER)
           const commentPrev = getCoverageTable(prevResults, CWD, true)
-
-          if (commentPrev) {
-            // await deletePreviousComments(octokit)
-            const commentPayloadPrev = getCommentPayload(commentPrev)
-            console.debug("Comment payload PREV: %j", commentPayloadPrev)
-            await octokit.issues.createComment(commentPayloadPrev)
-          }
 
           if (comment) {
             // await deletePreviousComments(octokit)
-            const commentPayload = getCommentPayload(comment)
-            console.debug("Comment payload: %j", commentPayload)
+            commentPayloadNew = getCommentPayload(comment)
+            console.debug("Comment payload: %j", commentPayloadNew)
+
+            commentPayload = commentPayloadNew
+            // await octokit.issues.createComment(commentPayload)
+          }
+
+          if (commentPrev) {
+            // await deletePreviousComments(octokit)
+            commentPayloadPrev = getCommentPayload(commentPrev)
+            console.debug("Comment payload PREV: %j", commentPayloadPrev)
+
+            commentPayload.body = commentPayloadNew.body + commentPayloadPrev.body
+            // await octokit.issues.createComment(commentPayloadPrev)
+          }
+
+          if (comment) {
             await octokit.issues.createComment(commentPayload)
           }
         }
@@ -133,7 +145,7 @@ function shouldRunOnlyChangedFiles(): boolean {
 }
 
 export function getCoverageTable(
-  results: FormattedTestResults,
+  results: any,
   cwd: string,
   isPrev?: boolean,
 ): string | false {
@@ -181,7 +193,7 @@ export function getCoverageTable(
     : COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
 }
 
-function getCommentPayload(body: string) {
+function getCommentPayload(body: any) {
   const payload: Octokit.IssuesCreateCommentParams = {
     ...context.repo,
     body,
