@@ -13,7 +13,8 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-const COVERAGE_HEADER = "\n\n**Previous code coverage vs Code coverage**\n\n"
+const COVERAGE_HEADER = "**Code coverage**\n\n"
+const COVERAGE_HEADER_PREV = "\n\n**Previous code coverage**\n\n"
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
 export async function run() {
@@ -189,7 +190,9 @@ export function getCoverageTable(
     }
   }
 
-  return COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
+  return isPrev
+    ? COVERAGE_HEADER_PREV + table(rows, { align: ["l", "r", "r", "r", "r"] })
+    : COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
 }
 
 function getCommentPayload(body: any) {
