@@ -13,8 +13,8 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-const COVERAGE_HEADER = "**Code coverage**\n\n"
-const COVERAGE_HEADER_PREV = "\n\n**Previous code coverage**\n\n"
+const COVERAGE_HEADER = "**Current branch coverage**\n\n"
+const COVERAGE_HEADER_PREV = "\n\n**Base branch coverage**\n\n"
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
 export async function run() {
