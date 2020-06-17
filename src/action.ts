@@ -13,8 +13,8 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-const COVERAGE_HEADER = "**Current branch coverage**\n\n"
-const COVERAGE_HEADER_PREV = "\n\n**Base branch coverage**\n\n"
+const COVERAGE_HEADER = "\n\n**Current branch coverage**\n\n"
+let COVERAGE_HEADER_PREV = "**Base branch coverage**\n\n"
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
 export async function run() {
@@ -42,12 +42,15 @@ export async function run() {
 
     if (results !== "empty") {
       // Get base branch coverage (previous coverage)
-      if (context.payload.pull_request?.base.ref) {
+      const baseBranch = context.payload.pull_request?.base.ref;
+      if (baseBranch) {
         await exec(
-          "git checkout origin/" + context.payload.pull_request?.base.ref,
+          "git checkout origin/" + baseBranch,
           [],
           {},
         )
+
+        COVERAGE_HEADER_PREV = "**" + baseBranch + " coverage**\n\n";
 
         const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
 
@@ -74,7 +77,6 @@ export async function run() {
             console.debug("Comment payload: %j", commentPayloadNew)
 
             commentPayload = commentPayloadNew
-            // await octokit.issues.createComment(commentPayload)
           }
 
           if (commentPrev) {
@@ -82,8 +84,7 @@ export async function run() {
             commentPayloadPrev = getCommentPayload(commentPrev)
             console.debug("Comment payload PREV: %j", commentPayloadPrev)
 
-            commentPayload.body = commentPayloadNew.body + commentPayloadPrev.body
-            // await octokit.issues.createComment(commentPayloadPrev)
+            commentPayload.body = commentPayloadPrev.body + commentPayloadNew.body
           }
 
           console.debug("Comment payload FINAL: %j", commentPayload)
