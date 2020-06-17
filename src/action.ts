@@ -43,7 +43,7 @@ export async function run() {
     if (results !== "empty") {
       // Get base branch coverage (previous coverage)
       if (context.payload.pull_request?.base.ref) {
-        await exec("git checkout origin" + context.payload.pull_request?.base.ref, [], {})
+        await exec("git checkout origin " + context.payload.pull_request?.base.ref, [], {})
 
         const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
 
