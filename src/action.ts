@@ -50,9 +50,10 @@ export async function run() {
             modifiedTestFilesError += data.toString()
           },
         },
+        cwd: '',
       },
     )
-    console.debug("============ modifiedTestFiles: %j", modifiedTestFiles)
+    console.debug("============ modifiedTestFiles captured on git diff: %j", modifiedTestFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
 
@@ -63,7 +64,6 @@ export async function run() {
 
     // Parse results
     const results = await parseResults(RESULTS_FILE)
-    console.debug("============ results parsed: %j", results)
 
     if (results !== "empty") {
       coverageHeader = "\n\n**" + currentBranch + " coverage**\n\n"
@@ -92,8 +92,6 @@ export async function run() {
           let coverageArrayNew: any = []
           let commentPrev: any
           let coverageDiff: any
-
-          console.debug("============ prevResults: %j", prevResults)
 
           if (prevResults !== "empty") {
             commentPrev = getCoverageTable(prevResults, CWD, true)
@@ -230,9 +228,9 @@ export async function run() {
           const diffMessage =
             "```diff\n+ Update on test files!\n```\n\n" +
             "**Test files updated:**\n\n" +
-            `${modifiedTestFiles.map(
+            `${modifiedTestFiles instanceof Array ? modifiedTestFiles.map(
               (modifiedTestFile: any) => " `" + modifiedTestFile + "`",
-            )}` +
+            ) : " `" + modifiedTestFiles + "`"}` +
             "\n\n"
 
             commentPayload.body = diffMessage;
