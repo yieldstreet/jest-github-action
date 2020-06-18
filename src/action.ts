@@ -77,15 +77,12 @@ export async function run() {
           if (comment) {
             // await deletePreviousComments(octokit)
             commentPayloadNew = getCommentPayload(comment)
-            console.debug("Comment payload: %j", commentPayloadNew)
-
             commentPayload = commentPayloadNew
           }
 
           if (commentPrev) {
             // await deletePreviousComments(octokit)
             commentPayloadPrev = getCommentPayload(commentPrev)
-            console.debug("Comment payload PREV: %j", commentPayloadPrev)
           }
 
           const coverageNumbersPrev = commentPayloadPrev.body
@@ -100,19 +97,15 @@ export async function run() {
               parseFloat(coverageNumberNew.trim().replace("%", "")),
             )
 
-          console.debug("===== coverageNumbersNew after regex: %j", coverageNumbersNew)
-          console.debug("===== coverageNumbersPrev after regex: %j", coverageNumbersPrev)
-
           const coverageDiff = getCoverageDiff(coverageNumbersPrev, coverageNumbersNew)
-          console.debug("coverageDiff: %j", coverageDiff)
 
           switch (coverageDiff) {
             case "minor":
               diffMessage =
-                "```diff\n! Your PR decrease the code coverage. Please add additional tests.\n```\n\n"
+                "```diff\n- Your PR decrease the code coverage. Please add additional tests.\n```\n\n"
               break
             case "higher":
-              diffMessage = "```diff\n! Your PR increase the code coverage!\n```\n\n"
+              diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
               break
             default:
               diffMessage =
@@ -121,8 +114,6 @@ export async function run() {
           }
 
           commentPayload.body = diffMessage + commentPayloadPrev.body + commentPayloadNew.body
-
-          console.debug("Comment payload FINAL: %j", commentPayload)
 
           if (comment) {
             await octokit.issues.createComment(commentPayload)
@@ -195,12 +186,6 @@ function getCoverageDiff(
       isHigher = true
     }
   })
-
-  console.debug("===== isEqual: %j", isEqual)
-  console.debug("===== isMinor: %j", isMinor)
-  console.debug("===== isHigher: %j", isHigher)
-  console.debug("===== coverageNumbersNew inside func: %j", coverageNumbersNew)
-  console.debug("===== coverageNumbersPrev inside func: %j", coverageNumbersPrev)
 
   if (isEqual) {
     return "equal"
@@ -298,7 +283,6 @@ function getCheckPayload(results: FormattedTestResults, cwd: string) {
       annotations: getAnnotations(results, cwd),
     },
   }
-  console.debug("Check payload: %j", payload)
   return payload
 }
 
