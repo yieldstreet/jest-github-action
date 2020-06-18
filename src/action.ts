@@ -82,77 +82,89 @@ export async function run() {
             // await deletePreviousComments(octokit)
             commentPayloadNew = getCommentPayload(comment)
             commentPayload = commentPayloadNew
+
+            const coverageNumbersNew = commentPayloadNew.body
+              .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
+              .map((coverageNumberNew: any) =>
+                parseFloat(coverageNumberNew.trim().replace("%", "")),
+              )
+            const coverageNamesNew = commentPayloadNew.body
+              .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+              .map((coverageName: any) => coverageName.replace(".js", ""))
+
+            coverageNamesNew.forEach((coverageName: any, idx: any) =>
+              coverageArrayNew.push({
+                component: coverageName,
+                percent: coverageNumbersNew[idx],
+              }),
+            )
           }
 
           if (commentPrev) {
             // await deletePreviousComments(octokit)
             commentPayloadPrev = getCommentPayload(commentPrev)
+
+            const coverageNumbersPrev = commentPayloadPrev.body
+              .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
+              .map((coverageNumber: any) =>
+                parseFloat(coverageNumber.trim().replace("%", "")),
+              )
+            const coverageNamesPrev = commentPayloadPrev.body
+              .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+              .map((coverageName: any) => coverageName.replace(".js", ""))
+
+            coverageNamesPrev.forEach((coverageName: any, idx: any) =>
+              coverageArrayPrev.push({
+                component: coverageName,
+                percent: coverageNumbersPrev[idx],
+              }),
+            )
           }
 
-          const coverageNumbersPrev = commentPayloadPrev.body
-            .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
-            .map((coverageNumber: any) =>
-              parseFloat(coverageNumber.trim().replace("%", "")),
-            )
-          const coverageNamesPrev = commentPayloadPrev.body
-            .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
-            .map((coverageName: any) => coverageName.replace(".js", ""))
-
-          coverageNamesPrev.forEach((coverageName: any, idx: any) =>
-            coverageArrayPrev.push({
-              component: coverageName,
-              percent: coverageNumbersPrev[idx],
-            }),
-          )
-
-          const coverageNumbersNew = commentPayloadNew.body
-            .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
-            .map((coverageNumberNew: any) =>
-              parseFloat(coverageNumberNew.trim().replace("%", "")),
-            )
-          const coverageNamesNew = commentPayloadNew.body
-            .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
-            .map((coverageName: any) => coverageName.replace(".js", ""))
-
-          coverageNamesNew.forEach((coverageName: any, idx: any) =>
-            coverageArrayNew.push({
-              component: coverageName,
-              percent: coverageNumbersNew[idx],
-            }),
-          )
-
           // Match arrays order based on the new array
-          coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
-            component: coverageItem.component,
-            percent: coverageArrayPrev.find(
-              (prevItem: any) => prevItem.component === coverageItem.component,
-            ).percent,
-          }))
+          if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0)
+            coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+              component: coverageItem.component,
+              percent: coverageArrayPrev.find(
+                (prevItem: any) => prevItem.component === coverageItem.component,
+              ).percent,
+            }))
 
           const coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
 
-          switch (coverageDiff) {
-            case "minor":
-              diffMessage =
-                "```diff\n- Your PR decrease the code coverage of one or more files.\n```\n\n" +
-                "**Improve tests for:**\n\n" +
-                `${filesAffectedMinor.map((fileAffected: any) => " `" + fileAffected + "`")}` +
-                "\n\n"
-              break
-            case "higher":
-              diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n" +
-              "**Directly affected files:**\n\n" +
-                `${filesAffectedHigher.map((fileAffected: any) => " `" + fileAffected + "`")}` +
-                "\n\n"
-              break
-            default:
-              diffMessage =
-                "```diff\n! Your PR does not increase nor decrease the code coverage.\n```\n\n"
-              break
-          }
+          if (coverageDiff) {
+            switch (coverageDiff) {
+              case "minor":
+                diffMessage =
+                  "```diff\n- Your PR decrease the code coverage of one or more files.\n```\n\n" +
+                  "**Improve tests for:**\n\n" +
+                  `${filesAffectedMinor.map(
+                    (fileAffected: any) => " `" + fileAffected + "`",
+                  )}` +
+                  "\n\n"
+                break
+              case "higher":
+                diffMessage =
+                  "```diff\n+ Your PR increase the code coverage!\n```\n\n" +
+                  "**Directly affected files:**\n\n" +
+                  `${filesAffectedHigher.map(
+                    (fileAffected: any) => " `" + fileAffected + "`",
+                  )}` +
+                  "\n\n"
+                break
+              default:
+                diffMessage =
+                  "```diff\n! Your PR does not increase nor decrease the code coverage.\n```\n\n"
+                break
+            }
 
-          commentPayload.body =
-            diffMessage + commentPayloadPrev.body + commentPayloadNew.body
+            commentPayload.body =
+              diffMessage + commentPayloadPrev.body + commentPayloadNew.body
+          } else {
+            diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
+
+            commentPayload.body = diffMessage + commentPayloadNew.body
+          }
 
           if (comment) {
             await octokit.issues.createComment(commentPayload)
