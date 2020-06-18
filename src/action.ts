@@ -80,9 +80,15 @@ export async function run() {
 
           const comment = getCoverageTable(results, CWD)
 
+          console.debug("============ prevResults: %j", prevResults)
+
           if (prevResults !== "empty") {
             commentPrev = getCoverageTable(prevResults, CWD, true)
           }
+
+          console.debug("============ pased empty check")
+
+          console.debug("============ coment: %j", comment)
 
           if (comment) {
             // await deletePreviousComments(octokit)
@@ -106,6 +112,10 @@ export async function run() {
             )
           }
 
+          console.debug("============ pased comment check")
+
+          console.debug("============ commentPrev: %j", commentPrev)
+
           if (commentPrev) {
             // await deletePreviousComments(octokit)
             commentPayloadPrev = getCommentPayload(commentPrev)
@@ -127,6 +137,11 @@ export async function run() {
             )
           }
 
+          console.debug("============ pased commentPrev check")
+
+          console.debug("============ coverageArrayNew.length: %j", coverageArrayNew.length)
+          console.debug("============ coverageArrayPrev.length: %j", coverageArrayPrev.length)
+
           // Match arrays order based on the new array
           if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
             coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
@@ -137,9 +152,13 @@ export async function run() {
             }))
           }
 
+          console.debug("============ pased arrays check")
+
           if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
             coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
           }
+
+          console.debug("============ pased diff function")
 
           if (coverageDiff) {
             switch (coverageDiff) {
