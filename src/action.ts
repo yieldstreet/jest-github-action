@@ -16,8 +16,11 @@ const ACTION_NAME = "jest-coverage-comment"
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 let coverageHeader: any
 let coverageHeaderPrev: any
+let commentPayload: any
 let filesAffectedMinor = <any>[]
 let filesAffectedHigher = <any>[]
+let modifiedTestFiles: any
+let modifiedTestFilesError: any
 
 export async function run() {
   const CWD = process.cwd() + sep
@@ -34,8 +37,6 @@ export async function run() {
 
     const baseBranch = context.payload.pull_request?.base.ref
     const currentBranch = context.payload.pull_request?.head.ref
-    let modifiedFiles: any
-    let modifiedFilesError: any
 
     await exec(
       "git diff --name-only origin/" + baseBranch + " origin/" + currentBranch,
@@ -43,15 +44,15 @@ export async function run() {
       {
         listeners: {
           stdout: (data: Buffer) => {
-            modifiedFiles += data.toString()
+            modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
           },
           stderr: (data: Buffer) => {
-            modifiedFilesError += data.toString()
+            modifiedTestFilesError += data.toString()
           },
         },
       },
     )
-    console.debug("============ modifiedFiles: %j", modifiedFiles)
+    console.debug("============ modifiedTestFiles: %j", modifiedTestFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
 
@@ -82,15 +83,8 @@ export async function run() {
 
         const comment = getCoverageTable(results, CWD)
 
-        // Checks
-        // const checkPayloadPrev = getCheckPayload(prevResults, CWD)
-        // const checkPayload = getCheckPayload(results, CWD)
-        // await octokit.checks.create(checkPayload)
-        // await octokit.checks.create(checkPayloadPrev)
-
         // Coverage comments
         if (comment) {
-          let commentPayload: any
           let commentPayloadNew: any
           let commentPayloadPrev: any
           let diffMessage: any
@@ -232,16 +226,19 @@ export async function run() {
               "Your PR decrease the code coverage of one or more files. Please add additional tests",
             )
           }
-        }
+        } else if (modifiedTestFiles.length > 0) {
+          const diffMessage =
+            "```diff\n+ New test files!\n```\n\n" +
+            "**Test files added:**\n\n" +
+            `${modifiedTestFiles.map(
+              (modifiedTestFile: any) => " `" + modifiedTestFile + "`",
+            )}` +
+            "\n\n"
 
-        if (!results.success) {
-          // core.setFailed("Some jest tests failed.")
+            commentPayload.body = diffMessage;
+            await octokit.issues.createComment(commentPayload)
         }
       } else {
-        // Checks
-        // const checkPayload = getCheckPayload(results, CWD)
-        // await octokit.checks.create(checkPayload)
-
         // Coverage comments
         if (shouldCommentCoverage()) {
           const comment = getCoverageTable(results, CWD)
