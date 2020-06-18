@@ -71,6 +71,8 @@ export async function run() {
           let commentPayloadNew: any
           let commentPayloadPrev: any
           let diffMessage: any
+          let coverageArrayPrev: any = []
+          let coverageArrayNew: any = []
           const comment = getCoverageTable(results, CWD)
           const commentPrev = getCoverageTable(prevResults, CWD, true)
 
@@ -90,14 +92,37 @@ export async function run() {
             .map((coverageNumber: any) =>
               parseFloat(coverageNumber.trim().replace("%", "")),
             )
+          const coverageNamesPrev = commentPayloadPrev.body
+            .match(/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+            .map((coverageName: any) => coverageName.replace(".js", ""))
+
+          coverageNamesPrev.forEach((coverageName: any, idx: any) =>
+            coverageArrayPrev.push({
+              component: coverageName,
+              percent: coverageNumbersPrev[idx],
+            }),
+          )
 
           const coverageNumbersNew = commentPayloadNew.body
             .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
             .map((coverageNumberNew: any) =>
               parseFloat(coverageNumberNew.trim().replace("%", "")),
             )
+          const coverageNamesNew = commentPayloadNew.body
+            .match(/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+            .map((coverageName: any) => coverageName.replace(".js", ""))
 
-          const coverageDiff = getCoverageDiff(coverageNumbersPrev, coverageNumbersNew)
+          coverageNamesNew.forEach((coverageName: any, idx: any) =>
+            coverageArrayNew.push({
+              component: coverageName,
+              percent: coverageNumbersNew[idx],
+            }),
+          )
+
+          // Match arrays order based on the new array
+          coverageArrayPrev = mapOrder(coverageArrayPrev, coverageArrayNew, "component")
+
+          const coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
 
           switch (coverageDiff) {
             case "minor":
@@ -113,7 +138,8 @@ export async function run() {
               break
           }
 
-          commentPayload.body = diffMessage + commentPayloadPrev.body + commentPayloadNew.body
+          commentPayload.body =
+            diffMessage + commentPayloadPrev.body + commentPayloadNew.body
 
           if (comment) {
             await octokit.issues.createComment(commentPayload)
@@ -171,18 +197,37 @@ async function deletePreviousComments(octokit: GitHub) {
   )
 }
 
+function mapOrder(array: any, order: any, key: any) {
+  array.sort(function (a: any, b: any) {
+    var A = a[key],
+      B = b[key]
+
+    if (order.indexOf(A) > order.indexOf(B)) {
+      return 1
+    } else {
+      return -1
+    }
+  })
+
+  return array
+}
+
 function getCoverageDiff(
-  coverageNumbersPrev: any,
-  coverageNumbersNew: any,
+  coverageArrayPrev: any,
+  coverageArrayNew: any,
 ): string | undefined {
-  const isEqual = coverageNumbersNew === coverageNumbersPrev
+  const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent);
+  const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent);
+
+
+  const isEqual = coveragePercentagesNew === coveragePercentagesPrev
   let isMinor = false
   let isHigher = false
 
-  coverageNumbersNew.forEach((coverageNumberNew: any, idx: any) => {
-    if (coverageNumberNew < coverageNumbersPrev[idx]) {
+  coveragePercentagesNew.forEach((coverageNumberNew: any, idx: any) => {
+    if (coverageNumberNew < coveragePercentagesPrev[idx]) {
       isMinor = true
-    } else if (coverageNumberNew > coverageNumbersPrev[idx]) {
+    } else if (coverageNumberNew > coveragePercentagesPrev[idx]) {
       isHigher = true
     }
   })
