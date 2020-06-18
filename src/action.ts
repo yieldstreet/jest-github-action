@@ -141,6 +141,8 @@ export async function run() {
 
           console.debug("============ coverageArrayNew.length: %j", coverageArrayNew.length)
           console.debug("============ coverageArrayPrev.length: %j", coverageArrayPrev.length)
+          console.debug("============ coverageArrayNew: %j", coverageArrayNew)
+          console.debug("============ coverageArrayPrev: %j", coverageArrayPrev)
 
           // Match arrays order based on the new array
           if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
@@ -159,6 +161,8 @@ export async function run() {
           }
 
           console.debug("============ pased diff function")
+
+          console.debug("============ coverageDiff: %j", coverageDiff)
 
           if (coverageDiff) {
             switch (coverageDiff) {
