@@ -215,7 +215,7 @@ export function getCoverageTable(
     return ""
   }
   const covMap = createCoverageMap((results.coverageMap as unknown) as CoverageMapData)
-  const rows = [["Filename", "Statements", "Branches", "Functions", "Lines"]]
+  const rows = [["Filename", "Functions Cover Rate"]]
 
   if (!Object.keys(covMap.data).length) {
     console.error("No entries found in coverage data")
@@ -231,10 +231,7 @@ export function getCoverageTable(
       rows.push([
         // filename.replace(cwd, ""),
         filename.substr(filename.lastIndexOf("/") + 1),
-        summary.statements.pct + "%",
-        summary.branches.pct + "%",
         summary.functions.pct + "%",
-        summary.lines.pct + "%",
       ])
     }
 
@@ -242,17 +239,14 @@ export function getCoverageTable(
       rows.push([
         // filename.replace(cwd, ""),
         filename.substr(filename.lastIndexOf("/") + 1),
-        summary.statements.pct + "%",
-        summary.branches.pct + "%",
         summary.functions.pct + "%",
-        summary.lines.pct + "%",
       ])
     }
   }
 
   return isPrev
-    ? COVERAGE_HEADER_PREV + table(rows, { align: ["l", "r", "r", "r", "r"] })
-    : COVERAGE_HEADER + table(rows, { align: ["l", "r", "r", "r", "r"] })
+    ? COVERAGE_HEADER_PREV + table(rows, { align: ["l", "r"] })
+    : COVERAGE_HEADER + table(rows, { align: ["l", "r"] })
 }
 
 function getCommentPayload(body: any) {
