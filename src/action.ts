@@ -98,9 +98,12 @@ export async function run() {
 
           const coverageNumbersNew = commentPayloadNew.body
             .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
-            .map((coverageNumber: any) =>
-              parseFloat(coverageNumber.trim().replace("%", "")),
+            .map((coverageNumberNew: any) =>
+              parseFloat(coverageNumberNew.trim().replace("%", "")),
             )
+
+          console.debug("===== coverageNumbersNew after regex: %j", coverageNumbersNew)
+          console.debug("===== coverageNumbersPrev after regex: %j", coverageNumbersPrev)
 
           const coverageDiff = getCoverageDiff(coverageNumbersPrev, coverageNumbersNew)
           console.debug("coverageDiff: %j", coverageDiff)
@@ -128,7 +131,9 @@ export async function run() {
           }
 
           if (coverageDiff === "minor") {
-            core.setFailed("Your PR decrease the code coverage. Please add additional tests.")
+            core.setFailed(
+              "Your PR decrease the code coverage. Please add additional tests.",
+            )
           }
         }
 
@@ -177,7 +182,10 @@ async function deletePreviousComments(octokit: GitHub) {
   )
 }
 
-function getCoverageDiff(coverageNumbersPrev: any, coverageNumbersNew: any): string | undefined {
+function getCoverageDiff(
+  coverageNumbersPrev: any,
+  coverageNumbersNew: any,
+): string | undefined {
   const isEqual = coverageNumbersNew === coverageNumbersPrev
   let isMinor = false
   let isHigher = false
@@ -193,8 +201,8 @@ function getCoverageDiff(coverageNumbersPrev: any, coverageNumbersNew: any): str
   console.debug("===== isEqual: %j", isEqual)
   console.debug("===== isMinor: %j", isMinor)
   console.debug("===== isHigher: %j", isHigher)
-  console.debug("===== coverageNumbersNew: %j", coverageNumbersNew)
-  console.debug("===== coverageNumbersPrev: %j", coverageNumbersPrev)
+  console.debug("===== coverageNumbersNew inside func: %j", coverageNumbersNew)
+  console.debug("===== coverageNumbersPrev inside func: %j", coverageNumbersPrev)
 
   if (isEqual) {
     return "equal"
