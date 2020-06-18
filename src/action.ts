@@ -13,8 +13,8 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-let COVERAGE_HEADER: any;
-let COVERAGE_HEADER_PREV: any;
+let COVERAGE_HEADER: any
+let COVERAGE_HEADER_PREV: any
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
 export async function run() {
@@ -41,20 +41,16 @@ export async function run() {
     const results = await parseResults(RESULTS_FILE)
 
     if (results !== "empty") {
-      const baseBranch = context.payload.pull_request?.base.ref;
-      const currentBranch = context.payload.pull_request?.head.ref;
+      const baseBranch = context.payload.pull_request?.base.ref
+      const currentBranch = context.payload.pull_request?.head.ref
 
-      COVERAGE_HEADER = "\n\n**" + currentBranch + " coverage**\n\n";
+      COVERAGE_HEADER = "\n\n**" + currentBranch + " coverage**\n\n"
 
       // Get base branch coverage (previous coverage)
       if (baseBranch) {
-        await exec(
-          "git checkout origin/" + baseBranch,
-          [],
-          {},
-        )
+        await exec("git checkout origin/" + baseBranch, [], {})
 
-        COVERAGE_HEADER_PREV = "**" + baseBranch + " coverage**\n\n";
+        COVERAGE_HEADER_PREV = "**" + baseBranch + " coverage**\n\n"
 
         const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
 
@@ -71,7 +67,10 @@ export async function run() {
 
         // Coverage comments
         if (shouldCommentCoverage()) {
-          let commentPayload, commentPayloadNew: any, commentPayloadPrev: any
+          let commentPayload,
+            commentPayloadNew: any,
+            commentPayloadPrev: any,
+            diffMessage: any
           const comment = getCoverageTable(results, CWD)
           const commentPrev = getCoverageTable(prevResults, CWD, true)
 
@@ -91,10 +90,44 @@ export async function run() {
             commentPayload.body = commentPayloadPrev.body + commentPayloadNew.body
           }
 
+          const coverageNumbersPrev = commentPayloadPrev.body
+            .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
+            .map((coverageNumber: any) =>
+              parseFloat(coverageNumber.trim().replace("%", "")),
+            )
+
+          const coverageNumbersNew = commentPayloadNew.body
+            .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
+            .map((coverageNumber: any) =>
+              parseFloat(coverageNumber.trim().replace("%", "")),
+            )
+
+          const coverageDiff = getCoverageDiff(coverageNumbersPrev, coverageNumbersNew)
+
+          switch (coverageDiff) {
+            case "minor":
+              diffMessage =
+                "```diff\n! Your PR decrease the code coverage. Please add additional tests.\n```\n\n"
+              break
+            case "higher":
+              diffMessage = "```diff\n! Your PR increase the code coverage!\n```\n\n"
+              break
+            default:
+              diffMessage =
+                "```diff\n! Your PR does not increase nor decrease the code coverage.\n```\n\n"
+              break
+          }
+
+          commentPayload.body = diffMessage + commentPayload.body
+
           console.debug("Comment payload FINAL: %j", commentPayload)
 
           if (comment) {
             await octokit.issues.createComment(commentPayload)
+          }
+
+          if (coverageDiff === "minor") {
+            core.setFailed("Your PR decrease the code coverage. Please add additional tests.")
           }
         }
 
@@ -141,6 +174,30 @@ async function deletePreviousComments(octokit: GitHub) {
       )
       .map((c) => octokit.issues.deleteComment({ ...context.repo, comment_id: c.id })),
   )
+}
+
+function getCoverageDiff(coverageNumbersPrev: any, coverageNumbersNew: any) {
+  const isEqual = coverageNumbersNew === coverageNumbersPrev
+  let isMinor = false
+  let isHigher = false
+
+  coverageNumbersNew.forEach((coverageNumberNew: any, idx: any) => {
+    if (coverageNumberNew < coverageNumbersPrev[idx]) {
+      isMinor = true
+    } else if (coverageNumberNew > coverageNumbersPrev[idx]) {
+      isHigher = true
+    }
+  })
+
+  if (isEqual) {
+    return "equal"
+  }
+
+  if (isMinor) {
+    return "minor"
+  } else if (isHigher) {
+    return "higher"
+  }
 }
 
 function shouldCommentCoverage(): boolean {
