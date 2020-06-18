@@ -228,8 +228,8 @@ export async function run() {
           }
         } else if (modifiedTestFiles.length > 0) {
           const diffMessage =
-            "```diff\n+ New test files!\n```\n\n" +
-            "**Test files added:**\n\n" +
+            "```diff\n+ Update on test files!\n```\n\n" +
+            "**Test files updated:**\n\n" +
             `${modifiedTestFiles.map(
               (modifiedTestFile: any) => " `" + modifiedTestFile + "`",
             )}` +
