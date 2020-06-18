@@ -67,10 +67,10 @@ export async function run() {
 
         // Coverage comments
         if (shouldCommentCoverage()) {
-          let commentPayload,
-            commentPayloadNew: any,
-            commentPayloadPrev: any,
-            diffMessage: any
+          let commentPayload: any
+          let commentPayloadNew: any
+          let commentPayloadPrev: any
+          let diffMessage: any
           const comment = getCoverageTable(results, CWD)
           const commentPrev = getCoverageTable(prevResults, CWD, true)
 
