@@ -86,8 +86,6 @@ export async function run() {
             // await deletePreviousComments(octokit)
             commentPayloadPrev = getCommentPayload(commentPrev)
             console.debug("Comment payload PREV: %j", commentPayloadPrev)
-
-            commentPayload.body = commentPayloadPrev.body + commentPayloadNew.body
           }
 
           const coverageNumbersPrev = commentPayloadPrev.body
@@ -122,7 +120,7 @@ export async function run() {
               break
           }
 
-          commentPayload.body = diffMessage + commentPayload.body
+          commentPayload.body = diffMessage + commentPayloadPrev.body + commentPayloadNew.body
 
           console.debug("Comment payload FINAL: %j", commentPayload)
 
