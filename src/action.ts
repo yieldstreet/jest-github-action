@@ -35,8 +35,8 @@ export async function run() {
     const baseBranch = context.payload.pull_request?.base.ref
     const currentBranch = context.payload.pull_request?.head.ref
 
-    const modifiedFiles = await exec("git diff --name-only origin/" + currentBranch + " $(git merge-base origin/" + currentBranch + " origin/" + baseBranch + " )", [], {})
-    console.debug("============ modifiedFiles: %j", modifiedFiles)
+    //const modifiedFiles = await exec("git diff --name-only origin/" + currentBranch + " $(git merge-base origin/" + currentBranch + " origin/" + baseBranch + " )", [], {})
+    //console.debug("============ modifiedFiles: %j", modifiedFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
 
@@ -47,7 +47,7 @@ export async function run() {
 
     // Parse results
     const results = await parseResults(RESULTS_FILE)
-    console.debug("============ results parsed: %j", modifiedFiles)
+    console.debug("============ results parsed: %j", results)
 
     if (results !== "empty") {
       coverageHeader = "\n\n**" + currentBranch + " coverage**\n\n"
