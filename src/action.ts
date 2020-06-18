@@ -13,8 +13,8 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-const COVERAGE_HEADER = "\n\n**Current branch coverage**\n\n"
-let COVERAGE_HEADER_PREV = "**Base branch coverage**\n\n"
+let COVERAGE_HEADER: any;
+let COVERAGE_HEADER_PREV: any;
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 
 export async function run() {
@@ -41,8 +41,12 @@ export async function run() {
     const results = await parseResults(RESULTS_FILE)
 
     if (results !== "empty") {
-      // Get base branch coverage (previous coverage)
       const baseBranch = context.payload.pull_request?.base.ref;
+      const currentBranch = context.payload.pull_request?.head.ref;
+
+      COVERAGE_HEADER = "\n\n**" + currentBranch + " coverage**\n\n";
+
+      // Get base branch coverage (previous coverage)
       if (baseBranch) {
         await exec(
           "git checkout origin/" + baseBranch,
