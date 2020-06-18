@@ -75,7 +75,8 @@ export async function run() {
           let diffMessage: any
           let coverageArrayPrev: any = []
           let coverageArrayNew: any = []
-          let commentPrev: any;
+          let commentPrev: any
+          let coverageDiff: any
 
           const comment = getCoverageTable(results, CWD)
 
@@ -127,15 +128,18 @@ export async function run() {
           }
 
           // Match arrays order based on the new array
-          if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0)
+          if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
             coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
               component: coverageItem.component,
               percent: coverageArrayPrev.find(
                 (prevItem: any) => prevItem.component === coverageItem.component,
               ).percent,
             }))
+          }
 
-          const coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
+          if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
+            coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
+          }
 
           if (coverageDiff) {
             switch (coverageDiff) {
