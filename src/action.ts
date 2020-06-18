@@ -75,8 +75,13 @@ export async function run() {
           let diffMessage: any
           let coverageArrayPrev: any = []
           let coverageArrayNew: any = []
+          let commentPrev: any;
+
           const comment = getCoverageTable(results, CWD)
-          const commentPrev = getCoverageTable(prevResults, CWD, true)
+
+          if (prevResults !== "empty") {
+            commentPrev = getCoverageTable(prevResults, CWD, true)
+          }
 
           if (comment) {
             // await deletePreviousComments(octokit)
@@ -160,7 +165,7 @@ export async function run() {
 
             commentPayload.body =
               diffMessage + commentPayloadPrev.body + commentPayloadNew.body
-          } else {
+          } else if (comment) {
             diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
 
             commentPayload.body = diffMessage + commentPayloadNew.body
