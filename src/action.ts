@@ -190,6 +190,12 @@ function getCoverageDiff(coverageNumbersPrev: any, coverageNumbersNew: any): str
     }
   })
 
+  console.debug("===== isEqual: %j", isEqual)
+  console.debug("===== isMinor: %j", isMinor)
+  console.debug("===== isHigher: %j", isHigher)
+  console.debug("===== coverageNumbersNew: %j", coverageNumbersNew)
+  console.debug("===== coverageNumbersPrev: %j", coverageNumbersPrev)
+
   if (isEqual) {
     return "equal"
   }
