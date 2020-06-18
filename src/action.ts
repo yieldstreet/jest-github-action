@@ -13,9 +13,11 @@ import { createCoverageMap, CoverageMapData } from "istanbul-lib-coverage"
 import type { FormattedTestResults } from "@jest/test-result/build/types"
 
 const ACTION_NAME = "jest-coverage-comment"
-let COVERAGE_HEADER: any
-let COVERAGE_HEADER_PREV: any
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
+let coverageHeader: any
+let coverageHeaderPrev: any
+let filesAffectedMinor = <any>[]
+let filesAffectedHigher = <any>[]
 
 export async function run() {
   const CWD = process.cwd() + sep
@@ -44,13 +46,13 @@ export async function run() {
       const baseBranch = context.payload.pull_request?.base.ref
       const currentBranch = context.payload.pull_request?.head.ref
 
-      COVERAGE_HEADER = "\n\n**" + currentBranch + " coverage**\n\n"
+      coverageHeader = "\n\n**" + currentBranch + " coverage**\n\n"
 
       // Get base branch coverage (previous coverage)
       if (baseBranch) {
         await exec("git checkout origin/" + baseBranch, [], {})
 
-        COVERAGE_HEADER_PREV = "**" + baseBranch + " coverage**\n\n"
+        coverageHeaderPrev = "**" + baseBranch + " coverage**\n\n"
 
         const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
 
@@ -93,7 +95,7 @@ export async function run() {
               parseFloat(coverageNumber.trim().replace("%", "")),
             )
           const coverageNamesPrev = commentPayloadPrev.body
-            .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+            .match(/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
             .map((coverageName: any) => coverageName.replace(".js", ""))
 
           coverageNamesPrev.forEach((coverageName: any, idx: any) =>
@@ -109,7 +111,7 @@ export async function run() {
               parseFloat(coverageNumberNew.trim().replace("%", "")),
             )
           const coverageNamesNew = commentPayloadNew.body
-            .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+            .match(/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
             .map((coverageName: any) => coverageName.replace(".js", ""))
 
           coverageNamesNew.forEach((coverageName: any, idx: any) =>
@@ -120,7 +122,6 @@ export async function run() {
           )
 
           // Match arrays order based on the new array
-          // coverageArrayPrev = mapOrder(coverageArrayPrev, coverageArrayNew, "component")
           coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
             component: coverageItem.component,
             percent: coverageArrayPrev.find(
@@ -133,10 +134,16 @@ export async function run() {
           switch (coverageDiff) {
             case "minor":
               diffMessage =
-                "```diff\n- Your PR decrease the code coverage of one or more files. Please add additional tests.\n```\n\n"
+                "```diff\n- Your PR decrease the code coverage of one or more files.\n```\n\n" +
+                "**Improve tests for:**\n\n" +
+                `${filesAffectedMinor.map((fileAffected: any) => " `" + fileAffected + "`")}` +
+                "\n\n"
               break
             case "higher":
-              diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
+              diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n" +
+              "**Files directly affected:**\n\n" +
+                `${filesAffectedHigher.map((fileAffected: any) => " `" + fileAffected + "`")}` +
+                "\n\n"
               break
             default:
               diffMessage =
@@ -197,7 +204,7 @@ async function deletePreviousComments(octokit: GitHub) {
     data
       .filter(
         (c) =>
-          c.user.login === "github-actions[bot]" && c.body.startsWith(COVERAGE_HEADER),
+          c.user.login === "github-actions[bot]" && c.body.startsWith(coverageHeader),
       )
       .map((c) => octokit.issues.deleteComment({ ...context.repo, comment_id: c.id })),
   )
@@ -216,8 +223,10 @@ function getCoverageDiff(
 
   coveragePercentagesNew.forEach((coverageNumberNew: any, idx: any) => {
     if (coverageNumberNew < coveragePercentagesPrev[idx]) {
+      filesAffectedMinor.push(coverageArrayNew[idx].component + ".js")
       isMinor = true
     } else if (coverageNumberNew > coveragePercentagesPrev[idx]) {
+      filesAffectedHigher.push(coverageArrayNew[idx].component + ".js")
       isHigher = true
     }
   })
@@ -282,8 +291,8 @@ export function getCoverageTable(
   }
 
   return isPrev
-    ? COVERAGE_HEADER_PREV + table(rows, { align: ["l", "r"] })
-    : COVERAGE_HEADER + table(rows, { align: ["l", "r"] })
+    ? coverageHeaderPrev + table(rows, { align: ["l", "r"] })
+    : coverageHeader + table(rows, { align: ["l", "r"] })
 }
 
 function getCommentPayload(body: any) {
