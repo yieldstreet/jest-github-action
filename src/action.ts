@@ -102,7 +102,7 @@ export async function run() {
           switch (coverageDiff) {
             case "minor":
               diffMessage =
-                "```diff\n- Your PR decrease the code coverage. Please add additional tests.\n```\n\n"
+                "```diff\n- Your PR decrease the code coverage of one or more files. Please add additional tests.\n```\n\n"
               break
             case "higher":
               diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
@@ -121,7 +121,7 @@ export async function run() {
 
           if (coverageDiff === "minor") {
             core.setFailed(
-              "Your PR decrease the code coverage. Please add additional tests.",
+              "Your PR decrease the code coverage of one or more files. Please add additional tests",
             )
           }
         }
