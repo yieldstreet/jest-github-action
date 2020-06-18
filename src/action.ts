@@ -49,7 +49,6 @@ export async function run() {
             modifiedFilesError += data.toString()
           },
         },
-        cwd: "./lib",
       },
     )
     console.debug("============ modifiedFiles: %j", modifiedFiles)
