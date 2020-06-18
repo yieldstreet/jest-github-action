@@ -50,9 +50,11 @@ export async function run() {
             modifiedTestFilesError += data.toString()
           },
         },
-        cwd: './',
+        cwd: '',
       },
     )
+
+    modifiedTestFiles = modifiedTestFiles.replace('undefined', '').split(',');
     console.debug("============ modifiedTestFiles captured on git diff: %j", modifiedTestFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
@@ -233,7 +235,7 @@ export async function run() {
             ) : " `" + modifiedTestFiles + "`"}` +
             "\n\n"
 
-            commentPayload.body = diffMessage;
+            commentPayload = getCommentPayload(diffMessage)
             await octokit.issues.createComment(commentPayload)
         }
       } else {
