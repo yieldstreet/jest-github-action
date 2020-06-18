@@ -21,6 +21,7 @@ let filesAffectedMinor = <any>[]
 let filesAffectedHigher = <any>[]
 let modifiedTestFiles: any
 let modifiedTestFilesError: any
+let testFilesMessage: any
 
 export async function run() {
   const CWD = process.cwd() + sep
@@ -50,12 +51,15 @@ export async function run() {
             modifiedTestFilesError += data.toString()
           },
         },
-        cwd: '',
+        cwd: "",
       },
     )
 
-    modifiedTestFiles = modifiedTestFiles.replace('undefined', '').split(',');
-    console.debug("============ modifiedTestFiles captured on git diff: %j", modifiedTestFiles)
+    modifiedTestFiles = modifiedTestFiles.replace("undefined", "").split(",")
+    console.debug(
+      "============ modifiedTestFiles captured on git diff: %j",
+      modifiedTestFiles,
+    )
 
     const cmd = getJestCommand(RESULTS_FILE)
 
@@ -210,11 +214,11 @@ export async function run() {
             }
 
             commentPayload.body =
-              diffMessage + commentPayloadPrev.body + commentPayloadNew.body
+              diffMessage + modifiedTestFiles.length > 0 && getTestFilesMessage() + commentPayloadPrev.body + commentPayloadNew.body
           } else if (comment) {
             diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
 
-            commentPayload.body = diffMessage + commentPayloadNew.body
+            commentPayload.body = diffMessage + modifiedTestFiles.length > 0 && getTestFilesMessage() + commentPayloadNew.body
           }
 
           if (comment) {
@@ -227,16 +231,11 @@ export async function run() {
             )
           }
         } else if (modifiedTestFiles.length > 0) {
-          const diffMessage =
-            "```diff\n+ Update on test files!\n```\n\n" +
-            "**Test files updated:**\n\n" +
-            `${modifiedTestFiles instanceof Array ? modifiedTestFiles.map(
-              (modifiedTestFile: any) => " `" + modifiedTestFile + "`",
-            ) : " `" + modifiedTestFiles + "`"}` +
-            "\n\n"
+          testFilesMessage =
+            "```diff\n+ Update on test files!\n```\n\n" + getTestFilesMessage()
 
-            commentPayload = getCommentPayload(diffMessage)
-            await octokit.issues.createComment(commentPayload)
+          commentPayload = getCommentPayload(testFilesMessage)
+          await octokit.issues.createComment(commentPayload)
         }
       } else {
         // Coverage comments
@@ -258,6 +257,18 @@ export async function run() {
     console.error(error)
     core.setFailed(error.message)
   }
+}
+
+function getTestFilesMessage() {
+  return (
+    "**Test files updated:**\n\n" +
+    `${
+      modifiedTestFiles instanceof Array
+        ? modifiedTestFiles.map((modifiedTestFile: any) => " `" + modifiedTestFile + "`")
+        : " `" + modifiedTestFiles + "`"
+    }` +
+    "\n\n"
+  )
 }
 
 async function deletePreviousComments(octokit: GitHub) {
