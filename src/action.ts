@@ -32,6 +32,12 @@ export async function run() {
       return
     }
 
+    const baseBranch = context.payload.pull_request?.base.ref
+    const currentBranch = context.payload.pull_request?.head.ref
+
+    const modifiedFiles = await exec("git diff --name-only " + currentBranch + " $(git merge-base " + currentBranch + " " + baseBranch + " )", [], {})
+    console.debug("============ modifiedFiles: %j", modifiedFiles)
+
     const cmd = getJestCommand(RESULTS_FILE)
 
     await execJest(cmd)
@@ -41,11 +47,9 @@ export async function run() {
 
     // Parse results
     const results = await parseResults(RESULTS_FILE)
+    console.debug("============ results parsed: %j", modifiedFiles)
 
     if (results !== "empty") {
-      const baseBranch = context.payload.pull_request?.base.ref
-      const currentBranch = context.payload.pull_request?.head.ref
-
       coverageHeader = "\n\n**" + currentBranch + " coverage**\n\n"
 
       // Get base branch coverage (previous coverage)
@@ -139,8 +143,14 @@ export async function run() {
 
           console.debug("============ pased commentPrev check")
 
-          console.debug("============ coverageArrayNew.length: %j", coverageArrayNew.length)
-          console.debug("============ coverageArrayPrev.length: %j", coverageArrayPrev.length)
+          console.debug(
+            "============ coverageArrayNew.length: %j",
+            coverageArrayNew.length,
+          )
+          console.debug(
+            "============ coverageArrayPrev.length: %j",
+            coverageArrayPrev.length,
+          )
           console.debug("============ coverageArrayNew: %j", coverageArrayNew)
           console.debug("============ coverageArrayPrev: %j", coverageArrayPrev)
 
