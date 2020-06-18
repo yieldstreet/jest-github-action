@@ -141,7 +141,7 @@ export async function run() {
               break
             case "higher":
               diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n" +
-              "**Files directly affected:**\n\n" +
+              "**Directly affected files:**\n\n" +
                 `${filesAffectedHigher.map((fileAffected: any) => " `" + fileAffected + "`")}` +
                 "\n\n"
               break
