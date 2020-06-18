@@ -61,6 +61,8 @@ export async function run() {
         // Parse prev results
         const prevResults = await parseResults(RESULTS_FILE_PREV)
 
+        const comment = getCoverageTable(results, CWD)
+
         // Checks
         // const checkPayloadPrev = getCheckPayload(prevResults, CWD)
         // const checkPayload = getCheckPayload(results, CWD)
@@ -68,7 +70,7 @@ export async function run() {
         // await octokit.checks.create(checkPayloadPrev)
 
         // Coverage comments
-        if (shouldCommentCoverage()) {
+        if (comment) {
           let commentPayload: any
           let commentPayloadNew: any
           let commentPayloadPrev: any
@@ -78,8 +80,6 @@ export async function run() {
           let commentPrev: any
           let coverageDiff: any
 
-          const comment = getCoverageTable(results, CWD)
-
           console.debug("============ prevResults: %j", prevResults)
 
           if (prevResults !== "empty") {
@@ -88,7 +88,7 @@ export async function run() {
 
           console.debug("============ pased empty check")
 
-          console.debug("============ coment: %j", comment)
+          console.debug("============ comment: %j", comment)
 
           if (comment) {
             // await deletePreviousComments(octokit)
