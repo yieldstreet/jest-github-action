@@ -317,7 +317,6 @@ function getJestCommandPrev(resultsFile: string) {
 function parseResults(resultsFile: string): FormattedTestResults {
   try {
     const results = JSON.parse(readFileSync(resultsFile, "utf-8"))
-    console.debug("Jest results: %j", results)
     return results
   } catch (err) {
     console.debug("ERROR trying to read results file: %j", err)
