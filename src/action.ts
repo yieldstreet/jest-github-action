@@ -120,7 +120,13 @@ export async function run() {
           )
 
           // Match arrays order based on the new array
-          coverageArrayPrev = mapOrder(coverageArrayPrev, coverageArrayNew, "component")
+          // coverageArrayPrev = mapOrder(coverageArrayPrev, coverageArrayNew, "component")
+          coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+            component: coverageItem.component,
+            percent: coverageArrayPrev.find(
+              (prevItem: any) => prevItem.component === coverageItem.component,
+            ).percent,
+          }))
 
           const coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
 
@@ -197,28 +203,12 @@ async function deletePreviousComments(octokit: GitHub) {
   )
 }
 
-function mapOrder(array: any, order: any, key: any) {
-  array.sort(function (a: any, b: any) {
-    var A = a[key],
-      B = b[key]
-
-    if (order.indexOf(A) > order.indexOf(B)) {
-      return 1
-    } else {
-      return -1
-    }
-  })
-
-  return array
-}
-
 function getCoverageDiff(
   coverageArrayPrev: any,
   coverageArrayNew: any,
 ): string | undefined {
-  const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent);
-  const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent);
-
+  const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent)
+  const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent)
 
   const isEqual = coveragePercentagesNew === coveragePercentagesPrev
   let isMinor = false
