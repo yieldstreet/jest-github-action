@@ -93,7 +93,7 @@ export async function run() {
               parseFloat(coverageNumber.trim().replace("%", "")),
             )
           const coverageNamesPrev = commentPayloadPrev.body
-            .match(/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+            .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
             .map((coverageName: any) => coverageName.replace(".js", ""))
 
           coverageNamesPrev.forEach((coverageName: any, idx: any) =>
@@ -109,7 +109,7 @@ export async function run() {
               parseFloat(coverageNumberNew.trim().replace("%", "")),
             )
           const coverageNamesNew = commentPayloadNew.body
-            .match(/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
+            .match(/\/\w+\/\w+\.js(?=\s+\|\s+(\d|\d\.\d)+%\s\|$)/gm)
             .map((coverageName: any) => coverageName.replace(".js", ""))
 
           coverageNamesNew.forEach((coverageName: any, idx: any) =>
@@ -275,7 +275,8 @@ export function getCoverageTable(
 
       rows.push([
         // filename.replace(cwd, ""),
-        filename.substr(filename.lastIndexOf("/") + 1),
+        // filename.substr(filename.lastIndexOf("/") + 1),
+        filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
         summary.functions.pct + "%",
       ])
     }
@@ -283,7 +284,8 @@ export function getCoverageTable(
     if (isPrev && COVERAGE_FILES_TO_CONSIDER.includes(filename)) {
       rows.push([
         // filename.replace(cwd, ""),
-        filename.substr(filename.lastIndexOf("/") + 1),
+        // filename.substr(filename.lastIndexOf("/") + 1),
+        filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
         summary.functions.pct + "%",
       ])
     }
