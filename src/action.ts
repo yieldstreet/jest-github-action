@@ -102,7 +102,7 @@ export async function run() {
               parseFloat(coverageNumber.trim().replace("%", "")),
             )
 
-          const coverageDiff = await getCoverageDiff(coverageNumbersPrev, coverageNumbersNew)
+          const coverageDiff = getCoverageDiff(coverageNumbersPrev, coverageNumbersNew)
           console.debug("coverageDiff: %j", coverageDiff)
 
           switch (coverageDiff) {
@@ -177,7 +177,7 @@ async function deletePreviousComments(octokit: GitHub) {
   )
 }
 
-async function getCoverageDiff(coverageNumbersPrev: any, coverageNumbersNew: any) {
+function getCoverageDiff(coverageNumbersPrev: any, coverageNumbersNew: any): string | undefined {
   const isEqual = coverageNumbersNew === coverageNumbersPrev
   let isMinor = false
   let isHigher = false
