@@ -34,8 +34,24 @@ export async function run() {
 
     const baseBranch = context.payload.pull_request?.base.ref
     const currentBranch = context.payload.pull_request?.head.ref
+    let modifiedFiles: any
+    let modifiedFilesError: any
 
-    const modifiedFiles = await exec("git diff --name-only origin/" + baseBranch + " origin/" + currentBranch, [], {})
+    await exec(
+      "git diff --name-only origin/" + baseBranch + " origin/" + currentBranch,
+      [],
+      {
+        listeners: {
+          stdout: (data: Buffer) => {
+            modifiedFiles += data.toString()
+          },
+          stderr: (data: Buffer) => {
+            modifiedFilesError += data.toString()
+          },
+        },
+        cwd: "./lib",
+      },
+    )
     console.debug("============ modifiedFiles: %j", modifiedFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
