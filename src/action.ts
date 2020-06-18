@@ -261,7 +261,7 @@ function getCoverageDiff(
   const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent)
   const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent)
 
-  const isEqual = coveragePercentagesNew === coveragePercentagesPrev
+  const isEqual = coveragePercentagesNew.toString() === coveragePercentagesPrev.toString()
   let isMinor = false
   let isHigher = false
 
