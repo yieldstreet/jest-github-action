@@ -62,10 +62,10 @@ export async function run() {
         const prevResults = await parseResults(RESULTS_FILE_PREV)
 
         // Checks
-        const checkPayloadPrev = getCheckPayload(prevResults, CWD)
-        const checkPayload = getCheckPayload(results, CWD)
-        await octokit.checks.create(checkPayload)
-        await octokit.checks.create(checkPayloadPrev)
+        // const checkPayloadPrev = getCheckPayload(prevResults, CWD)
+        // const checkPayload = getCheckPayload(results, CWD)
+        // await octokit.checks.create(checkPayload)
+        // await octokit.checks.create(checkPayloadPrev)
 
         // Coverage comments
         if (shouldCommentCoverage()) {
@@ -170,8 +170,8 @@ export async function run() {
         }
       } else {
         // Checks
-        const checkPayload = getCheckPayload(results, CWD)
-        await octokit.checks.create(checkPayload)
+        // const checkPayload = getCheckPayload(results, CWD)
+        // await octokit.checks.create(checkPayload)
 
         // Coverage comments
         if (shouldCommentCoverage()) {
@@ -184,7 +184,7 @@ export async function run() {
         }
 
         if (!results.success) {
-          core.setFailed("Some jest tests failed.")
+          //core.setFailed("Some jest tests failed.")
         }
       }
     }
