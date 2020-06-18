@@ -50,7 +50,7 @@ export async function run() {
             modifiedTestFilesError += data.toString()
           },
         },
-        cwd: '',
+        cwd: './',
       },
     )
     console.debug("============ modifiedTestFiles captured on git diff: %j", modifiedTestFiles)
