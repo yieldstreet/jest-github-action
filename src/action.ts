@@ -201,6 +201,10 @@ export async function run() {
                   `${filesAffectedMinor.map(
                     (fileAffected: any) => " `" + fileAffected + "`",
                   )}` +
+                  "\n\n" +
+                  "Check your updated coverage locally before pushing by running\n`yarn test --coverage --changedSince=origin/" +
+                  baseBranch +
+                  "`" +
                   "\n\n"
                 break
               case "higher":
