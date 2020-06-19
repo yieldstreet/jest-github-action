@@ -355,7 +355,7 @@ export function getCoverageTable(
     return ""
   }
   const covMap = createCoverageMap((results.coverageMap as unknown) as CoverageMapData)
-  const rows = [["Filename", "Functions Cover Rate"], ["Uncovered Lines"]]
+  const rows = [["Filename", "Functions Cover Rate", "Uncovered Lines"]]
 
   if (!Object.keys(covMap.data).length) {
     console.error("No entries found in coverage data")
@@ -366,13 +366,9 @@ export function getCoverageTable(
     const { data: summary } = data.toSummary()
     const uncoveredLines = data.getUncoveredLines()
 
-    // console.debug(
-    //   ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
-    //   filename,
-    // )
     console.debug(
-      ">>>>>>>>>>>>>>>>>>>>>>>>> uncoveredLines: %j",
-      uncoveredLines,
+      ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
+      filename,
     )
 
     if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm) && filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0])) {
