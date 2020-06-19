@@ -367,7 +367,7 @@ export function getCoverageTable(
     const uncoveredLines = data
       .getUncoveredLines()
       .map((lineNumber, idx) =>
-        idx !== 0 && idx % 4 === 0 ? `#${lineNumber}<br />` : `#${lineNumber}`,
+        idx !== 0 && idx % 4 === 0 ? `[${lineNumber}]<br />` : `[${lineNumber}]`,
       )
       .toString()
       .replace(/<br \/>\,/gm, "<br />")
