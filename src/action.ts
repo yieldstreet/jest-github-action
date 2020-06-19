@@ -16,8 +16,13 @@ const ACTION_NAME = "jest-coverage-comment"
 const COVERAGE_FILES_TO_CONSIDER = <any>[]
 let coverageHeader: any
 let coverageHeaderPrev: any
+let commentPayload: any
 let filesAffectedMinor = <any>[]
 let filesAffectedHigher = <any>[]
+let modifiedFiles: any
+let modifiedTestFiles: any
+let modifiedTestFilesError: any
+let testFilesMessage: any
 
 export async function run() {
   const CWD = process.cwd() + sep
@@ -35,8 +40,42 @@ export async function run() {
     const baseBranch = context.payload.pull_request?.base.ref
     const currentBranch = context.payload.pull_request?.head.ref
 
-    //const modifiedFiles = await exec("git diff --name-only origin/" + currentBranch + " $(git merge-base origin/" + currentBranch + " origin/" + baseBranch + " )", [], {})
-    //console.debug("============ modifiedFiles: %j", modifiedFiles)
+    await exec(
+      "git diff --name-only origin/" + baseBranch + " origin/" + currentBranch,
+      [],
+      {
+        listeners: {
+          stdout: (data: Buffer) => {
+            modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
+            modifiedFiles += data.toString().match(/\/\w+\/\w+\/\w+\/\w+(\.test|)\.js/gm)
+          },
+          stderr: (data: Buffer) => {
+            modifiedTestFilesError += data.toString()
+          },
+        },
+        cwd: "",
+      },
+    )
+
+    if (modifiedTestFiles.length > 0) {
+      modifiedTestFiles = modifiedTestFiles.replace("undefined", "").split(",")
+    }
+    console.debug(
+      "============ modifiedTestFiles captured on git diff: %j",
+      modifiedTestFiles,
+    )
+
+    if (modifiedFiles.length > 0) {
+      modifiedFiles = [
+        ...new Set(
+          modifiedFiles
+            .replace("undefined", "")
+            .split(",")
+            .map((modifiedFile: any) => modifiedFile.replace(".test", "")),
+        ),
+      ]
+    }
+    console.debug("============ modifiedFiles captured on git diff: %j", modifiedFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
 
@@ -47,9 +86,8 @@ export async function run() {
 
     // Parse results
     const results = await parseResults(RESULTS_FILE)
-    console.debug("============ results parsed: %j", results)
 
-    if (results !== "empty") {
+    if (results !== "empty" && modifiedFiles.length > 0) {
       coverageHeader = "\n\n**" + currentBranch + " coverage**\n\n"
 
       // Get base branch coverage (previous coverage)
@@ -58,7 +96,7 @@ export async function run() {
 
         coverageHeaderPrev = "**" + baseBranch + " coverage**\n\n"
 
-        const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
+        const cmd = getJestCommand(RESULTS_FILE_PREV)
 
         await execJest(cmd)
 
@@ -67,15 +105,8 @@ export async function run() {
 
         const comment = getCoverageTable(results, CWD)
 
-        // Checks
-        // const checkPayloadPrev = getCheckPayload(prevResults, CWD)
-        // const checkPayload = getCheckPayload(results, CWD)
-        // await octokit.checks.create(checkPayload)
-        // await octokit.checks.create(checkPayloadPrev)
-
         // Coverage comments
         if (comment) {
-          let commentPayload: any
           let commentPayloadNew: any
           let commentPayloadPrev: any
           let diffMessage: any
@@ -83,8 +114,6 @@ export async function run() {
           let coverageArrayNew: any = []
           let commentPrev: any
           let coverageDiff: any
-
-          console.debug("============ prevResults: %j", prevResults)
 
           if (prevResults !== "empty") {
             commentPrev = getCoverageTable(prevResults, CWD, true)
@@ -188,7 +217,7 @@ export async function run() {
               case "higher":
                 diffMessage =
                   "```diff\n+ Your PR increase the code coverage!\n```\n\n" +
-                  "**Directly affected files:**\n\n" +
+                  "**Directly affected components:**\n\n" +
                   `${filesAffectedHigher.map(
                     (fileAffected: any) => " `" + fileAffected + "`",
                   )}` +
@@ -199,13 +228,16 @@ export async function run() {
                   "```diff\n! Your PR does not increase nor decrease the code coverage.\n```\n\n"
                 break
             }
-
-            commentPayload.body =
-              diffMessage + commentPayloadPrev.body + commentPayloadNew.body
-          } else if (comment) {
-            diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
-
-            commentPayload.body = diffMessage + commentPayloadNew.body
+            if (modifiedTestFiles.length > 0) {
+              commentPayload.body =
+                diffMessage +
+                `${getTestFilesMessage()}` +
+                commentPayloadPrev.body +
+                commentPayloadNew.body
+            } else {
+              commentPayload.body =
+                diffMessage + commentPayloadPrev.body + commentPayloadNew.body
+            }
           }
 
           if (comment) {
@@ -217,16 +249,14 @@ export async function run() {
               "Your PR decrease the code coverage of one or more files. Please add additional tests",
             )
           }
-        }
+        } else if (modifiedTestFiles.length > 0) {
+          testFilesMessage =
+            "```diff\n+ Update on test files!\n```\n\n" + getTestFilesMessage()
 
-        if (!results.success) {
-          // core.setFailed("Some jest tests failed.")
+          commentPayload = getCommentPayload(testFilesMessage)
+          await octokit.issues.createComment(commentPayload)
         }
       } else {
-        // Checks
-        // const checkPayload = getCheckPayload(results, CWD)
-        // await octokit.checks.create(checkPayload)
-
         // Coverage comments
         if (shouldCommentCoverage()) {
           const comment = getCoverageTable(results, CWD)
@@ -246,6 +276,18 @@ export async function run() {
     console.error(error)
     core.setFailed(error.message)
   }
+}
+
+function getTestFilesMessage() {
+  return (
+    "**Test files modified:**\n\n" +
+    `${
+      modifiedTestFiles instanceof Array
+        ? modifiedTestFiles.map((modifiedTestFile: any) => " `" + modifiedTestFile + "`")
+        : " `" + modifiedTestFiles + "`"
+    }` +
+    "\n\n"
+  )
 }
 
 async function deletePreviousComments(octokit: GitHub) {
@@ -323,18 +365,11 @@ export function getCoverageTable(
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
 
-    if (!isPrev) {
-      COVERAGE_FILES_TO_CONSIDER.push(filename)
-
-      rows.push([
-        // filename.replace(cwd, ""),
-        // filename.substr(filename.lastIndexOf("/") + 1),
-        filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
-        summary.functions.pct + "%",
-      ])
-    }
-
-    if (isPrev && COVERAGE_FILES_TO_CONSIDER.includes(filename)) {
+    if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0])) {
+      console.debug(
+        "============ filename on getCoverageTable that matches something on modifiedFiles: %j",
+        filename,
+      )
       rows.push([
         // filename.replace(cwd, ""),
         // filename.substr(filename.lastIndexOf("/") + 1),
@@ -381,21 +416,6 @@ function getCheckPayload(results: FormattedTestResults, cwd: string) {
 }
 
 function getJestCommand(resultsFile: string) {
-  let cmd = core.getInput("test-command", { required: false })
-  const jestOptions = `--json ${shouldCommentCoverage() ? "--coverage" : ""} ${
-    context.payload.pull_request?.base.ref
-      ? "--changedSince=" + "origin/" + context.payload.pull_request?.base.ref
-      : ""
-  } --outputFile=${resultsFile}`
-  const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
-  cmd += (isNpm ? " -- " : " ") + jestOptions
-  core.debug("Final test command: " + cmd)
-  console.debug("Final test command: %j", cmd)
-  console.debug("BASE REF: %j", context.payload.pull_request?.base.ref)
-  return cmd
-}
-
-function getJestCommandPrev(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
   const jestOptions = `--json ${
     shouldCommentCoverage() ? "--coverage" : ""
