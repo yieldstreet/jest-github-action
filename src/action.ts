@@ -370,9 +370,10 @@ export function getCoverageTable(
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
 
-    console.debug("============ filename on getCoverageTable: %j", filename)
+    
 
     if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0])) {
+      console.debug("============ filename on getCoverageTable that matches something on modifiedFiles: %j", filename)
       rows.push([
         // filename.replace(cwd, ""),
         // filename.substr(filename.lastIndexOf("/") + 1),
