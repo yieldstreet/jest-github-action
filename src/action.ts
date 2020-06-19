@@ -19,6 +19,7 @@ let coverageHeaderPrev: any
 let commentPayload: any
 let filesAffectedMinor = <any>[]
 let filesAffectedHigher = <any>[]
+let modifiedFiles: any
 let modifiedTestFiles: any
 let modifiedTestFilesError: any
 let testFilesMessage: any
@@ -46,6 +47,7 @@ export async function run() {
         listeners: {
           stdout: (data: Buffer) => {
             modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
+            modifiedFiles += data.toString().match(/\w+(\.test|)\.js/gm)
           },
           stderr: (data: Buffer) => {
             modifiedTestFilesError += data.toString()
@@ -60,6 +62,16 @@ export async function run() {
       "============ modifiedTestFiles captured on git diff: %j",
       modifiedTestFiles,
     )
+
+    modifiedFiles = [
+      ...new Set(
+        modifiedFiles
+          .replace("undefined", "")
+          .split(",")
+          .map((modifiedFile: any) => modifiedFile.replace(".test", "")),
+      ),
+    ]
+    console.debug("============ modifiedFiles captured on git diff: %j", modifiedFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
 
@@ -214,7 +226,10 @@ export async function run() {
             }
             if (modifiedTestFiles.length > 0) {
               commentPayload.body =
-                diffMessage + `${getTestFilesMessage()}` + commentPayloadPrev.body + commentPayloadNew.body
+                diffMessage +
+                `${getTestFilesMessage()}` +
+                commentPayloadPrev.body +
+                commentPayloadNew.body
             } else {
               commentPayload.body =
                 diffMessage + commentPayloadPrev.body + commentPayloadNew.body
@@ -354,6 +369,8 @@ export function getCoverageTable(
 
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
+
+    console.debug("============ filename on getCoverageTable: %j", filename)
 
     if (!isPrev) {
       COVERAGE_FILES_TO_CONSIDER.push(filename)
