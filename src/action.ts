@@ -183,19 +183,20 @@ export async function run() {
           console.debug("============ coverageArrayNew: %j", coverageArrayNew)
           console.debug("============ coverageArrayPrev: %j", coverageArrayPrev)
 
-          // Match arrays order based on the new array
-          if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
-            coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
-              component: coverageItem.component,
-              percent: coverageArrayPrev.find(
-                (prevItem: any) => prevItem.component === coverageItem.component,
-              )?.percent,
-            }))
-          }
+          // // Match arrays order based on the new array
+          // if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
+          //   coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+          //     component: coverageItem.component,
+          //     percent: coverageArrayPrev.find(
+          //       (prevItem: any) => prevItem.component === coverageItem.component,
+          //     )?.percent,
+          //   }))
+          // }
 
-          console.debug("============ pased arrays check")
+          // console.debug("============ pased arrays check")
 
           if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
+            console.debug("============ entered on diff function")
             coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
           }
 
