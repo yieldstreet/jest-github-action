@@ -129,7 +129,7 @@ export async function run() {
             commentPayload = commentPayloadNew
 
             const coverageNumbersNew = commentPayloadNew.body
-              .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
+              .match(/(\d|\d\.\d)+%(?=\s\|\s+.*\s\|$)/gm)
               .map((coverageNumberNew: any) =>
                 parseFloat(coverageNumberNew.trim().replace("%", "")),
               )
@@ -154,7 +154,7 @@ export async function run() {
             commentPayloadPrev = getCommentPayload(commentPrev)
 
             const coverageNumbersPrev = commentPayloadPrev.body
-              .match(/(\d|\d\.\d)+%\s(?=\|$)/gm)
+              .match(/(\d|\d\.\d)+%(?=\s\|\s+.*\s\|$)/gm)
               .map((coverageNumber: any) =>
                 parseFloat(coverageNumber.trim().replace("%", "")),
               )
@@ -391,8 +391,8 @@ export function getCoverageTable(
   }
 
   return isPrev
-    ? coverageHeaderPrev + table(rows, { align: ["l", "r"] })
-    : coverageHeader + table(rows, { align: ["l", "r"] })
+    ? coverageHeaderPrev + table(rows, { align: ["l", "r", "l"] })
+    : coverageHeader + table(rows, { align: ["l", "r", "l"] })
 }
 
 function getCommentPayload(body: any) {
