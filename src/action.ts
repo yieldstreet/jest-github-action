@@ -57,20 +57,24 @@ export async function run() {
       },
     )
 
-    modifiedTestFiles = modifiedTestFiles.replace("undefined", "").split(",")
+    if (modifiedTestFiles.length > 0) {
+      modifiedTestFiles = modifiedTestFiles.replace("undefined", "").split(",")
+    }
     console.debug(
       "============ modifiedTestFiles captured on git diff: %j",
       modifiedTestFiles,
     )
 
-    modifiedFiles = [
-      ...new Set(
-        modifiedFiles
-          .replace("undefined", "")
-          .split(",")
-          .map((modifiedFile: any) => modifiedFile.replace(".test", "")),
-      ),
-    ]
+    if (modifiedFiles.length > 0) {
+      modifiedFiles = [
+        ...new Set(
+          modifiedFiles
+            .replace("undefined", "")
+            .split(",")
+            .map((modifiedFile: any) => modifiedFile.replace(".test", "")),
+        ),
+      ]
+    }
     console.debug("============ modifiedFiles captured on git diff: %j", modifiedFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
@@ -83,7 +87,7 @@ export async function run() {
     // Parse results
     const results = await parseResults(RESULTS_FILE)
 
-    if (results !== "empty") {
+    if (results !== "empty" && modifiedFiles.length > 0) {
       coverageHeader = "\n\n**" + currentBranch + " coverage**\n\n"
 
       // Get base branch coverage (previous coverage)
@@ -371,7 +375,10 @@ export function getCoverageTable(
     const { data: summary } = data.toSummary()
 
     if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0])) {
-      console.debug("============ filename on getCoverageTable that matches something on modifiedFiles: %j", filename)
+      console.debug(
+        "============ filename on getCoverageTable that matches something on modifiedFiles: %j",
+        filename,
+      )
       rows.push([
         // filename.replace(cwd, ""),
         // filename.substr(filename.lastIndexOf("/") + 1),
