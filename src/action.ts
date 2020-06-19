@@ -212,13 +212,22 @@ export async function run() {
                   "```diff\n! Your PR does not increase nor decrease the code coverage.\n```\n\n"
                 break
             }
-
-            commentPayload.body =
-              diffMessage + modifiedTestFiles.length > 0 && getTestFilesMessage() + commentPayloadPrev.body + commentPayloadNew.body
+            if (modifiedTestFiles.length > 0) {
+              commentPayload.body =
+                diffMessage + getTestFilesMessage() + commentPayloadPrev.body + commentPayloadNew.body
+            } else {
+              commentPayload.body =
+                diffMessage + commentPayloadPrev.body + commentPayloadNew.body
+            }
           } else if (comment) {
             diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
 
-            commentPayload.body = diffMessage + modifiedTestFiles.length > 0 && getTestFilesMessage() + commentPayloadNew.body
+            if (modifiedTestFiles.length > 0) {
+              commentPayload.body =
+                diffMessage + getTestFilesMessage() + commentPayloadNew.body
+            } else {
+              commentPayload.body = diffMessage + commentPayloadNew.body
+            }
           }
 
           if (comment) {
