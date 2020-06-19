@@ -47,7 +47,7 @@ export async function run() {
         listeners: {
           stdout: (data: Buffer) => {
             modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
-            modifiedFiles += data.toString().match(/\/\w+\/\w+(\.test|)\.js/gm)
+            modifiedFiles += data.toString().match(/\/\w+\/\w+\/\w+\/\w+(\.test|)\.js/gm)
           },
           stderr: (data: Buffer) => {
             modifiedTestFilesError += data.toString()
@@ -73,7 +73,7 @@ export async function run() {
     ]
     console.debug("============ modifiedFiles captured on git diff: %j", modifiedFiles)
 
-    const cmd = getJestCommandPrev(RESULTS_FILE)
+    const cmd = getJestCommand(RESULTS_FILE)
 
     await execJest(cmd)
 
@@ -92,7 +92,7 @@ export async function run() {
 
         coverageHeaderPrev = "**" + baseBranch + " coverage**\n\n"
 
-        const cmd = getJestCommandPrev(RESULTS_FILE_PREV)
+        const cmd = getJestCommand(RESULTS_FILE_PREV)
 
         await execJest(cmd)
 
@@ -370,9 +370,7 @@ export function getCoverageTable(
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
 
-    
-
-    if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0])) {
+    if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0])) {
       console.debug("============ filename on getCoverageTable that matches something on modifiedFiles: %j", filename)
       rows.push([
         // filename.replace(cwd, ""),
@@ -381,26 +379,6 @@ export function getCoverageTable(
         summary.functions.pct + "%",
       ])
     }
-
-    // if (!isPrev) {
-    //   COVERAGE_FILES_TO_CONSIDER.push(filename)
-
-    //   rows.push([
-    //     // filename.replace(cwd, ""),
-    //     // filename.substr(filename.lastIndexOf("/") + 1),
-    //     filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
-    //     summary.functions.pct + "%",
-    //   ])
-    // }
-
-    // if (isPrev && COVERAGE_FILES_TO_CONSIDER.includes(filename)) {
-    //   rows.push([
-    //     // filename.replace(cwd, ""),
-    //     // filename.substr(filename.lastIndexOf("/") + 1),
-    //     filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
-    //     summary.functions.pct + "%",
-    //   ])
-    // }
   }
 
   return isPrev
@@ -439,22 +417,7 @@ function getCheckPayload(results: FormattedTestResults, cwd: string) {
   return payload
 }
 
-// function getJestCommand(resultsFile: string) {
-//   let cmd = core.getInput("test-command", { required: false })
-//   const jestOptions = `--json ${shouldCommentCoverage() ? "--coverage" : ""} ${
-//     context.payload.pull_request?.base.ref
-//       ? "--changedSince=" + "origin/" + context.payload.pull_request?.base.ref
-//       : ""
-//   } --outputFile=${resultsFile}`
-//   const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
-//   cmd += (isNpm ? " -- " : " ") + jestOptions
-//   core.debug("Final test command: " + cmd)
-//   console.debug("Final test command: %j", cmd)
-//   console.debug("BASE REF: %j", context.payload.pull_request?.base.ref)
-//   return cmd
-// }
-
-function getJestCommandPrev(resultsFile: string) {
+function getJestCommand(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
   const jestOptions = `--json ${
     shouldCommentCoverage() ? "--coverage" : ""
