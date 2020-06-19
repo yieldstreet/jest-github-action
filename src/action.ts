@@ -214,7 +214,7 @@ export async function run() {
             }
             if (modifiedTestFiles.length > 0) {
               commentPayload.body =
-                diffMessage + getTestFilesMessage() + commentPayloadPrev.body + commentPayloadNew.body
+                diffMessage + `${getTestFilesMessage()}` + commentPayloadPrev.body + commentPayloadNew.body
             } else {
               commentPayload.body =
                 diffMessage + commentPayloadPrev.body + commentPayloadNew.body
@@ -224,7 +224,7 @@ export async function run() {
 
             if (modifiedTestFiles.length > 0) {
               commentPayload.body =
-                diffMessage + getTestFilesMessage() + commentPayloadNew.body
+                diffMessage + `${getTestFilesMessage()}` + commentPayloadNew.body
             } else {
               commentPayload.body = diffMessage + commentPayloadNew.body
             }
