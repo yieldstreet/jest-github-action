@@ -239,6 +239,9 @@ export async function run() {
                 diffMessage + commentPayloadPrev.body + commentPayloadNew.body
             }
           } else if (comment) {
+            /**
+             * This else if can probably be removed, but Im not sure.
+             */
             diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
 
             if (modifiedTestFiles.length > 0) {
@@ -289,7 +292,7 @@ export async function run() {
 
 function getTestFilesMessage() {
   return (
-    "**Test files updated:**\n\n" +
+    "**Test files modified:**\n\n" +
     `${
       modifiedTestFiles instanceof Array
         ? modifiedTestFiles.map((modifiedTestFile: any) => " `" + modifiedTestFile + "`")
