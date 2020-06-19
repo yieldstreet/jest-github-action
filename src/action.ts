@@ -355,12 +355,11 @@ export function getCoverageTable(
     const { data: summary } = data.toSummary()
     const uncoveredLines = data
       .getUncoveredLines()
-      .map((lineNumber, idx) =>
-        idx !== 0 && idx % 3 === 0 ? `[${lineNumber}]<br />` : `[${lineNumber}]`,
-      )
+      .map((lineNumber) => `[${lineNumber}]`)
       .toString()
-      .replace(/<br \/>\,/gm, "<br />")
-      .replace(/\,+/gm, ', ')
+      .replace(/\,+/gm, " ")
+      .replace(/^/gm, "<sub>")
+      .replace(/$/gm, "</sub>")
 
     console.debug(
       ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
