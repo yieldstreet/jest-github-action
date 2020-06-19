@@ -129,7 +129,7 @@ export async function run() {
             commentPayload = commentPayloadNew
 
             const coverageNumbersNew = commentPayloadNew.body
-              .match(/(\d|\d\.\d)+%(?=\s\|\s+.*\s\|$)/gm)
+              .match(/(\d|\d\.\d)+%(?=\s\|\s+(.*)\s\|$)/gm)
               .map((coverageNumberNew: any) =>
                 parseFloat(coverageNumberNew.trim().replace("%", "")),
               )
@@ -154,7 +154,7 @@ export async function run() {
             commentPayloadPrev = getCommentPayload(commentPrev)
 
             const coverageNumbersPrev = commentPayloadPrev.body
-              .match(/(\d|\d\.\d)+%(?=\s\|\s+.*\s\|$)/gm)
+              .match(/(\d|\d\.\d)+%(?=\s\|\s+(.*)\s\|$)/gm)
               .map((coverageNumber: any) =>
                 parseFloat(coverageNumber.trim().replace("%", "")),
               )
