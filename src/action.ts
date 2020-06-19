@@ -355,6 +355,7 @@ export function getCoverageTable(
     return ""
   }
   const covMap = createCoverageMap((results.coverageMap as unknown) as CoverageMapData)
+  // const rows = [["Filename", "Functions Cover Rate"], ["Uncovered Lines"]]
   const rows = [["Filename", "Functions Cover Rate"]]
 
   if (!Object.keys(covMap.data).length) {
@@ -365,9 +366,14 @@ export function getCoverageTable(
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
 
+    // console.debug(
+    //   ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
+    //   filename,
+    // )
+
     console.debug(
-      ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
-      filename,
+      ">>>>>>>>>>>>>>>>>>>>>>>>> summary: %j",
+      summary,
     )
 
     if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm) && filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0])) {
@@ -380,6 +386,7 @@ export function getCoverageTable(
         // filename.substr(filename.lastIndexOf("/") + 1),
         filename.match(/\/\w+\/\w+\.js(?=$)/gm) && filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
         summary.functions.pct + "%",
+        // summary.lines.pct + "%",
       ])
     }
   }
