@@ -189,7 +189,7 @@ export async function run() {
               component: coverageItem.component,
               percent: coverageArrayPrev.find(
                 (prevItem: any) => prevItem.component === coverageItem.component,
-              ).percent,
+              )?.percent,
             }))
           }
 
