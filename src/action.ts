@@ -364,14 +364,25 @@ export function getCoverageTable(
 
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
-    const uncoveredLines = data.getUncoveredLines()
+    const uncoveredLines = data
+      .getUncoveredLines()
+      .map((lineNumber, idx) =>
+        idx !== 0 && idx % 4 === 0 ? `${lineNumber}<br />` : `${lineNumber}`,
+      )
+      .toString()
+      .replace("<br />,", "<br />")
 
     console.debug(
       ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
       filename,
     )
 
-    if (modifiedFiles.includes(filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm) && filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0])) {
+    if (
+      modifiedFiles.includes(
+        filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm) &&
+          filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0],
+      )
+    ) {
       console.debug(
         "============ filename on getCoverageTable that matches something on modifiedFiles: %j",
         filename,
@@ -379,9 +390,10 @@ export function getCoverageTable(
       rows.push([
         // filename.replace(cwd, ""),
         // filename.substr(filename.lastIndexOf("/") + 1),
-        filename.match(/\/\w+\/\w+\.js(?=$)/gm) && filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
+        filename.match(/\/\w+\/\w+\.js(?=$)/gm) &&
+          filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
         summary.functions.pct + "%",
-        uncoveredLines.toString()
+        uncoveredLines,
       ])
     }
   }
