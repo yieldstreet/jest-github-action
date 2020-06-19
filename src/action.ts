@@ -238,18 +238,6 @@ export async function run() {
               commentPayload.body =
                 diffMessage + commentPayloadPrev.body + commentPayloadNew.body
             }
-          } else if (comment) {
-            /**
-             * This else if can probably be removed, but Im not sure.
-             */
-            diffMessage = "```diff\n+ Your PR increase the code coverage!\n```\n\n"
-
-            if (modifiedTestFiles.length > 0) {
-              commentPayload.body =
-                diffMessage + `${getTestFilesMessage()}` + commentPayloadNew.body
-            } else {
-              commentPayload.body = diffMessage + commentPayloadNew.body
-            }
           }
 
           if (comment) {
