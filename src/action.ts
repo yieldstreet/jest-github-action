@@ -391,8 +391,8 @@ export function getCoverageTable(
   }
 
   return isPrev
-    ? coverageHeaderPrev + table(rows, { align: ["l", "r", "l"] })
-    : coverageHeader + table(rows, { align: ["l", "r", "l"] })
+    ? coverageHeaderPrev + table(rows, { align: ["l", "r", "r"] })
+    : coverageHeader + table(rows, { align: ["l", "r", "r"] })
 }
 
 function getCommentPayload(body: any) {
