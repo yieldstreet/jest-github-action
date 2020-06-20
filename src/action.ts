@@ -189,6 +189,15 @@ export async function run() {
             coverageArrayNew.length === coverageArrayPrev.length
           ) {
             // no new files, lenght are equals
+
+            // Match arrays order based on the new array
+            coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+              component: coverageItem.component,
+              percent: coverageArrayPrev.find(
+                (prevItem: any) => prevItem.component === coverageItem.component,
+              ).percent,
+            }))
+
             console.debug("============ entered on diff function")
             coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
           } else {
