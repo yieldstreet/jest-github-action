@@ -406,14 +406,13 @@ export function getCoverageTable(
 
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
-    // const uncoveredLines = data
-    //   .getUncoveredLines()
-    //   .map((lineNumber) => `[${lineNumber}]`)
-    //   .toString()
-    //   .replace(/\,+/gm, " ")
-    //   .replace(/^/gm, "<sub>")
-    //   .replace(/$/gm, "</sub>")
-    const uncoveredLines = "[0]" // TEMP
+    const uncoveredLines = data
+      .getUncoveredLines()
+      .map((lineNumber) => `[${lineNumber}]`)
+      .toString()
+      .replace(/\,+/gm, " ")
+      .replace(/^/gm, "<sub>")
+      .replace(/$/gm, "</sub>")
 
     console.debug(
       ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
