@@ -183,7 +183,47 @@ export async function run() {
           console.debug("============ coverageArrayNew: %j", coverageArrayNew)
           console.debug("============ coverageArrayPrev: %j", coverageArrayPrev)
 
-          if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
+          if (
+            coverageArrayNew.length > 0 &&
+            coverageArrayPrev.length > 0 &&
+            coverageArrayNew.length === coverageArrayPrev.length
+          ) {
+            // no new files, lenght are equals
+            console.debug("============ entered on diff function")
+            coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
+          } else {
+            // new files, must add the new files to the prev array as well.
+            console.debug(
+              "============ new files detected, must match arrays before diff",
+            )
+            // coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+            //   component: coverageItem.component,
+            //   percent: coverageArrayPrev.find(
+            //     (prevItem: any) => prevItem.component === coverageItem.component,
+            //   )?.percent,
+            // }))
+
+            coverageArrayNew.forEach((coverageArrayNewItem: any) => {
+              if (!coverageArrayPrev.includes(coverageArrayNewItem)) {
+                console.debug("============ NEW COMPONENT DETECTED: %j", coverageArrayNewItem.component)
+                const newFileObj = {
+                  component: coverageArrayNewItem.component,
+                  percent: 0,
+                }
+                coverageArrayPrev.push(newFileObj)
+              }
+            })
+
+            // Match arrays order based on the new array
+            if (coverageArrayNew.length > 0 && coverageArrayPrev.length > 0) {
+              coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+                component: coverageItem.component,
+                percent: coverageArrayPrev.find(
+                  (prevItem: any) => prevItem.component === coverageItem.component,
+                ).percent,
+              }))
+            }
+
             console.debug("============ entered on diff function")
             coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
           }
@@ -310,9 +350,7 @@ function getCoverageDiff(
   let isMinor = false
   let isHigher = false
 
-
   coveragePercentagesNew.forEach((coverageNumberNew: any, idx: any) => {
-
     console.debug(
       "====================== COMPARING DIFF FILE 1 (PREV): %j",
       coverageArrayPrev[idx],
