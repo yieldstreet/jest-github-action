@@ -310,7 +310,19 @@ function getCoverageDiff(
   let isMinor = false
   let isHigher = false
 
+
   coveragePercentagesNew.forEach((coverageNumberNew: any, idx: any) => {
+
+    console.debug(
+      "====================== COMPARING DIFF FILE 1 (PREV): %j",
+      coverageArrayPrev[idx],
+    )
+
+    console.debug(
+      "====================== COMPARING DIFF FILE 2 (NEW): %j",
+      coverageArrayNew[idx],
+    )
+
     if (coverageNumberNew < coveragePercentagesPrev[idx]) {
       filesAffectedMinor.push(coverageArrayNew[idx].component + ".js")
       isMinor = true
@@ -357,13 +369,14 @@ export function getCoverageTable(
 
   for (const [filename, data] of Object.entries(covMap.data || {})) {
     const { data: summary } = data.toSummary()
-    const uncoveredLines = data
-      .getUncoveredLines()
-      .map((lineNumber) => `[${lineNumber}]`)
-      .toString()
-      .replace(/\,+/gm, " ")
-      .replace(/^/gm, "<sub>")
-      .replace(/$/gm, "</sub>")
+    // const uncoveredLines = data
+    //   .getUncoveredLines()
+    //   .map((lineNumber) => `[${lineNumber}]`)
+    //   .toString()
+    //   .replace(/\,+/gm, " ")
+    //   .replace(/^/gm, "<sub>")
+    //   .replace(/$/gm, "</sub>")
+    const uncoveredLines = "[0]" // TEMP
 
     console.debug(
       ">>>>>>>>>>>>>>>>>>>>>>>>> PROCESSING filename on getCoverageTabl: %j",
