@@ -20,7 +20,7 @@ let commentPayload: any
 let filesAffectedMinor = <any>[]
 let filesAffectedHigher = <any>[]
 let modifiedFiles: any
-let modifiedTestFiles: any
+let modifiedTestFiles = <any>[]
 let modifiedTestFilesError: any
 let testFilesMessage: any
 
