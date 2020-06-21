@@ -200,7 +200,11 @@ export async function run() {
 
             console.debug("============ entered on diff function")
             coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
-          } else {
+          } else if (
+            coverageArrayNew.length > 0 &&
+            coverageArrayPrev.length > 0 &&
+            coverageArrayNew.length !== coverageArrayPrev.length
+          ) {
             // new files, must add the new files to the prev array as well.
             console.debug(
               "============ new files detected, must match arrays before diff",
