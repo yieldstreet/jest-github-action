@@ -70,6 +70,11 @@ export async function run() {
       modifiedTestFiles = [];
     }
 
+    console.debug(
+      "============ modifiedTestFiles after reset check: %j",
+      modifiedTestFiles,
+    )
+
     if (modifiedFiles.length > 0) {
       modifiedFiles = [
         ...new Set(
@@ -86,6 +91,11 @@ export async function run() {
       // reset modifiedFiles array 
       modifiedFiles = [];
     }
+
+    console.debug(
+      "============ modifiedFiles after reset check: %j",
+      modifiedFiles,
+    )
 
     const cmd = getJestCommand(RESULTS_FILE)
 
