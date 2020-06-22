@@ -65,6 +65,11 @@ export async function run() {
       modifiedTestFiles,
     )
 
+    if (modifiedTestFiles[0] === "null") {
+      // reset modifiedTestFiles array 
+      modifiedTestFiles = [];
+    }
+
     if (modifiedFiles.length > 0) {
       modifiedFiles = [
         ...new Set(
@@ -76,6 +81,11 @@ export async function run() {
       ]
     }
     console.debug("============ modifiedFiles captured on git diff: %j", modifiedFiles)
+
+    if (modifiedFiles[0] === "null") {
+      // reset modifiedFiles array 
+      modifiedFiles = [];
+    }
 
     const cmd = getJestCommand(RESULTS_FILE)
 
