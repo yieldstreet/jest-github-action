@@ -40,6 +40,9 @@ export async function run() {
     const baseBranch = context.payload.pull_request?.base.ref
     const currentBranch = context.payload.pull_request?.head.ref
 
+    // Update local repo with the latest base branch changes
+    await exec("git merge origin/" + baseBranch, [], {})
+
     await exec(
       "git diff --name-only origin/" + baseBranch + " origin/" + currentBranch,
       [],
