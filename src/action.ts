@@ -48,7 +48,7 @@ export async function run() {
     await exec("git merge origin/" + baseBranch + " --no-edit", [], {})
 
     await exec(
-      "git diff --name-only origin/" + baseBranch + " origin/" + currentBranch,
+      "git diff --name-only origin/" + baseBranch,
       [],
       {
         listeners: {
