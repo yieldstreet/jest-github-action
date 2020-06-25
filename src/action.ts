@@ -40,8 +40,12 @@ export async function run() {
     const baseBranch = context.payload.pull_request?.base.ref
     const currentBranch = context.payload.pull_request?.head.ref
 
+    // pre setup git configs
+    await exec("git config --global user.email 'ys-test-coverage@ys.com'", [], {})
+    await exec("git config --global user.name 'ys-test-coverage'", [], {})
+
     // Update local repo with the latest base branch changes
-    await exec("git merge origin/" + baseBranch, [], {})
+    await exec("git merge origin/" + baseBranch + " --no-edit", [], {})
 
     await exec(
       "git diff --name-only origin/" + baseBranch + " origin/" + currentBranch,
