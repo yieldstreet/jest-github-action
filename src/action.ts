@@ -45,7 +45,8 @@ export async function run() {
     await exec("git config --global user.name 'test-coverage'", [], {})
 
     // Update local repo with the latest base branch changes
-    await exec("git checkout .", [], {})
+    await exec("git checkout yarn.lock", [], {})
+    await exec("git checkout package-lock.json", [], {})
     await exec("git merge origin/" + baseBranch + " --no-edit", [], {})
 
     await exec(
