@@ -46,7 +46,6 @@ export async function run() {
 
     // Update local repo with the latest base branch changes
     await exec("git checkout yarn.lock", [], {})
-    await exec("git checkout package-lock.json", [], {})
     await exec("git merge origin/" + baseBranch + " --no-edit", [], {})
 
     await exec(
