@@ -55,7 +55,7 @@ export async function run() {
         listeners: {
           stdout: (data: Buffer) => {
             modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
-            modifiedFiles += data.toString().match(/\/\w+\/\w+\/\w+\/\w+(\.test|)\.js/gm)
+            modifiedFiles += data.toString().match(/\/\w+\/\w+\/\w+\/\w+(\.test|)\.js[^(\.snap)]/gm)
           },
           stderr: (data: Buffer) => {
             modifiedTestFilesError += data.toString()
