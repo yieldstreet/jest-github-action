@@ -120,7 +120,6 @@ export async function run() {
 
       // Get base branch coverage (previous coverage)
       if (baseBranch) {
-        await exec("git checkout .", [], {})
         await exec("git checkout origin/" + baseBranch, [], {})
 
         coverageHeaderPrev = "**" + baseBranch + " coverage**\n\n"
