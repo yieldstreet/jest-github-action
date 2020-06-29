@@ -151,7 +151,7 @@ export async function run() {
           console.debug("============ comment: %j", comment)
 
           if (comment) {
-            // await deletePreviousComments(octokit)
+            await deletePreviousComments(octokit)
             commentPayloadNew = getCommentPayload(comment)
             commentPayload = commentPayloadNew
 
@@ -333,7 +333,7 @@ export async function run() {
         if (shouldCommentCoverage()) {
           const comment = getCoverageTable(results, CWD)
           if (comment) {
-            // await deletePreviousComments(octokit)
+            await deletePreviousComments(octokit)
             const commentPayload = getCommentPayload(comment)
             await octokit.issues.createComment(commentPayload)
           }
@@ -372,7 +372,7 @@ async function deletePreviousComments(octokit: GitHub) {
     data
       .filter(
         (c) =>
-          c.user.login === "github-actions[bot]" && c.body.startsWith(coverageHeader),
+          c.user.login === "github-actions[bot]" && c.body.startsWith("```diff"),
       )
       .map((c) => octokit.issues.deleteComment({ ...context.repo, comment_id: c.id })),
   )
