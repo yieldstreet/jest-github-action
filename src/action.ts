@@ -162,7 +162,7 @@ export async function run() {
                 parseFloat(coverageNumberNew.trim().replace("%", "")),
               )
             const coverageNamesNew = commentPayloadNew.body
-              .match(/\/\w+\/\w+\.js/gm)
+              .match(/\/\w+\/\w+\/\w+\.js/gm)
               .map((coverageName: any) => coverageName.replace(".js", ""))
 
             coverageNamesNew.forEach((coverageName: any, idx: any) =>
