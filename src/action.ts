@@ -473,8 +473,8 @@ export function getCoverageTable(
       rows.push([
         // filename.replace(cwd, ""),
         // filename.substr(filename.lastIndexOf("/") + 1),
-        filename.match(/\/\w+\/\w+\.js(?=$)/gm) &&
-          filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
+        filename.match(/\/\w+\/\w+\/\w+\.js(?=$)/gm) &&
+          filename.match(/\/\w+\/\w+\/\w+\.js(?=$)/gm)[0],
         summary.functions.pct + "%",
         uncoveredLines,
       ])
