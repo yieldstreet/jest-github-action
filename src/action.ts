@@ -212,14 +212,23 @@ export async function run() {
             coverageArrayNew.length === coverageArrayPrev.length
           ) {
             // no new files, lenght are equals
+            let hasDifferentOrder = false
 
-            // Match arrays order based on the new array
-            coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
-              component: coverageItem.component,
-              percent: coverageArrayPrev.find(
-                (prevItem: any) => prevItem.component === coverageItem.component,
-              ).percent,
-            }))
+            coverageArrayNew.forEach((itemNew: any, idx: any) => {
+              if (itemNew.component !== coverageArrayPrev[idx].component) {
+                hasDifferentOrder = true
+              }
+            })
+
+            // Match arrays order based on the new array, if necessary
+            if (hasDifferentOrder) {
+              coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+                component: coverageItem.component,
+                percent: coverageArrayPrev.find(
+                  (prevItem: any) => prevItem.component === coverageItem.component,
+                ).percent,
+              }))
+            }
 
             console.debug("============ entered on diff function")
             coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
@@ -379,7 +388,14 @@ function getCoverageDiff(
 ): string | undefined {
   const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent)
   const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent)
-
+  console.debug(
+    "====================== coverageArrayPrev on diff function: %j",
+    coverageArrayPrev,
+  )
+  console.debug(
+    "====================== coverageArrayNew on diff function: %j",
+    coverageArrayNew,
+  )
   console.debug(
     "====================== coveragePercentagesPrev: %j",
     coveragePercentagesPrev,
@@ -398,18 +414,10 @@ function getCoverageDiff(
       "====================== COMPARING DIFF FILE 1 (PREV): %j",
       coverageArrayPrev[idx],
     )
-    console.debug(
-      "====================== PERCENTAGE DIFF FILE 1 (PREV) coverageNumberNew: %j",
-      coverageNumberNew,
-    )
 
     console.debug(
       "====================== COMPARING DIFF FILE 2 (NEW): %j",
       coverageArrayNew[idx],
-    )
-    console.debug(
-      "====================== PERCENTAGE DIFF FILE 2 (PREV) coveragePercentagesPrev[idx]: %j",
-      coveragePercentagesPrev[idx],
     )
 
     if (coverageNumberNew < coveragePercentagesPrev[idx]) {
@@ -498,7 +506,7 @@ export function getCoverageTable(
 
   /**
    * Avoid breaking/running coverage if there's no items detected.
-   * 
+   *
    * Example scenario: only the test file was modified, and the component lives on a different folder from the test file.
    */
   if (!atLeastOneDetectedFile) {
