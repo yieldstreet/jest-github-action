@@ -377,8 +377,16 @@ function getCoverageDiff(
   coverageArrayPrev: any,
   coverageArrayNew: any,
 ): string | undefined {
-  const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent)
-  const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent)
+  let coveragePercentagesPrev: any = [];
+  let coveragePercentagesNew: any = [];
+
+  coverageArrayPrev.forEach((item: any) => {
+    coveragePercentagesPrev.push(item.percent);
+  })
+
+  coverageArrayNew.forEach((item: any) => {
+    coveragePercentagesNew.push(item.percent);
+  })
 
   console.debug(
     "====================== coveragePercentagesPrev: %j",
@@ -399,8 +407,8 @@ function getCoverageDiff(
       coverageArrayPrev[idx],
     )
     console.debug(
-      "====================== PERCENTAGE DIFF FILE 1 (PREV) coverageNumberNew: %j",
-      coverageNumberNew,
+      "====================== PERCENTAGE DIFF FILE 1 (PREV) coveragePercentagesPrev[idx]: %j",
+      coveragePercentagesPrev[idx],
     )
 
     console.debug(
@@ -408,8 +416,8 @@ function getCoverageDiff(
       coverageArrayNew[idx],
     )
     console.debug(
-      "====================== PERCENTAGE DIFF FILE 2 (PREV) coveragePercentagesPrev[idx]: %j",
-      coveragePercentagesPrev[idx],
+      "====================== PERCENTAGE DIFF FILE 2 (NEW) coverageNumberNew: %j",
+      coverageNumberNew,
     )
 
     if (coverageNumberNew < coveragePercentagesPrev[idx]) {
