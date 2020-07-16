@@ -377,8 +377,16 @@ function getCoverageDiff(
   coverageArrayPrev: any,
   coverageArrayNew: any,
 ): string | undefined {
-  const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent)
-  const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent)
+  let coveragePercentagesPrev: any = []
+  let coveragePercentagesNew: any = []
+
+  coverageArrayPrev.forEach((item: any, idx: any) => {
+    coveragePercentagesPrev.push(coverageArrayPrev[idx].percent)
+  })
+
+  coverageArrayNew.forEach((item: any, idx: any) => {
+    coveragePercentagesNew.push(coverageArrayNew[idx].percent)
+  })
 
   console.debug(
     "====================== coveragePercentagesPrev: %j",
@@ -399,8 +407,8 @@ function getCoverageDiff(
       coverageArrayPrev[idx],
     )
     console.debug(
-      "====================== PERCENTAGE DIFF FILE 1 (PREV) coverageNumberNew: %j",
-      coverageNumberNew,
+      "====================== PERCENTAGE DIFF FILE 1 (PREV) coveragePercentagesPrev[idx]: %j",
+      coveragePercentagesPrev[idx],
     )
 
     console.debug(
@@ -408,8 +416,8 @@ function getCoverageDiff(
       coverageArrayNew[idx],
     )
     console.debug(
-      "====================== PERCENTAGE DIFF FILE 2 (PREV) coveragePercentagesPrev[idx]: %j",
-      coveragePercentagesPrev[idx],
+      "====================== PERCENTAGE DIFF FILE 2 (NEW) coverageNumberNew: %j",
+      coverageNumberNew,
     )
 
     if (coverageNumberNew < coveragePercentagesPrev[idx]) {
@@ -498,7 +506,7 @@ export function getCoverageTable(
 
   /**
    * Avoid breaking/running coverage if there's no items detected.
-   * 
+   *
    * Example scenario: only the test file was modified, and the component lives on a different folder from the test file.
    */
   if (!atLeastOneDetectedFile) {
