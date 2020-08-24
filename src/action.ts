@@ -216,9 +216,11 @@ export async function run() {
 
             coverageArrayNew.forEach((itemNew: any, idx: any) => {
               if (itemNew.component !== coverageArrayPrev[idx].component) {
-                hasDifferentOrder = true
+                hasDifferentOrder = true 
               }
             })
+
+            console.debug("============ hasDifferentOrder?: %j", hasDifferentOrder)
 
             // Match arrays order based on the new array, if necessary
             if (hasDifferentOrder) {
