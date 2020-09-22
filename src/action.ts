@@ -347,7 +347,7 @@ export async function run() {
         }
 
         if (!results.success) {
-          //core.setFailed("Some jest tests failed.")
+          core.setFailed("Some jest tests failed.")
         }
       }
     }
