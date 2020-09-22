@@ -48,22 +48,20 @@ export async function run() {
     await exec("git checkout .", [], {})
     await exec("git merge origin/" + baseBranch + " --no-edit", [], {})
 
-    await exec(
-      "git diff --name-only origin/" + baseBranch,
-      [],
-      {
-        listeners: {
-          stdout: (data: Buffer) => {
-            modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
-            modifiedFiles += data.toString().match(/\/\w+\/\w+\/\w+\/\w+(\.test|)\.js(?=[^(\.snap)])/gm)
-          },
-          stderr: (data: Buffer) => {
-            modifiedTestFilesError += data.toString()
-          },
+    await exec("git diff --name-only origin/" + baseBranch, [], {
+      listeners: {
+        stdout: (data: Buffer) => {
+          modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
+          modifiedFiles += data
+            .toString()
+            .match(/\/\w+\/\w+\/\w+\/\w+(\.test|)\.js(?=[^(\.snap)])/gm)
         },
-        cwd: "",
+        stderr: (data: Buffer) => {
+          modifiedTestFilesError += data.toString()
+        },
       },
-    )
+      cwd: "",
+    })
 
     if (modifiedTestFiles.length > 0) {
       modifiedTestFiles = modifiedTestFiles.replace("undefined", "").split(",")
@@ -74,8 +72,8 @@ export async function run() {
     )
 
     if (modifiedTestFiles[0] === "null") {
-      // reset modifiedTestFiles array 
-      modifiedTestFiles = [];
+      // reset modifiedTestFiles array
+      modifiedTestFiles = []
     }
 
     console.debug(
@@ -96,14 +94,11 @@ export async function run() {
     console.debug("============ modifiedFiles captured on git diff: %j", modifiedFiles)
 
     if (modifiedFiles[0] === "null") {
-      // reset modifiedFiles array 
-      modifiedFiles = [];
+      // reset modifiedFiles array
+      modifiedFiles = []
     }
 
-    console.debug(
-      "============ modifiedFiles after reset check: %j",
-      modifiedFiles,
-    )
+    console.debug("============ modifiedFiles after reset check: %j", modifiedFiles)
 
     const cmd = getJestCommand(RESULTS_FILE)
 
@@ -162,7 +157,7 @@ export async function run() {
                 parseFloat(coverageNumberNew.trim().replace("%", "")),
               )
             const coverageNamesNew = commentPayloadNew.body
-              .match(/\/\w+\/\w+\.js/gm)
+              .match(/\/\w+\/\w+\/\w+\.js/gm)
               .map((coverageName: any) => coverageName.replace(".js", ""))
 
             coverageNamesNew.forEach((coverageName: any, idx: any) =>
@@ -187,7 +182,7 @@ export async function run() {
                 parseFloat(coverageNumber.trim().replace("%", "")),
               )
             const coverageNamesPrev = commentPayloadPrev.body
-              .match(/\/\w+\/\w+\.js/gm)
+              .match(/\/\w+\/\w+\/\w+\.js/gm)
               .map((coverageName: any) => coverageName.replace(".js", ""))
 
             coverageNamesPrev.forEach((coverageName: any, idx: any) =>
@@ -217,14 +212,25 @@ export async function run() {
             coverageArrayNew.length === coverageArrayPrev.length
           ) {
             // no new files, lenght are equals
+            let hasDifferentOrder = false
 
-            // Match arrays order based on the new array
-            coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
-              component: coverageItem.component,
-              percent: coverageArrayPrev.find(
-                (prevItem: any) => prevItem.component === coverageItem.component,
-              ).percent,
-            }))
+            coverageArrayNew.forEach((itemNew: any, idx: any) => {
+              if (itemNew.component !== coverageArrayPrev[idx].component) {
+                hasDifferentOrder = true 
+              }
+            })
+
+            console.debug("============ hasDifferentOrder?: %j", hasDifferentOrder)
+
+            // Match arrays order based on the new array, if necessary
+            if (hasDifferentOrder) {
+              coverageArrayPrev = coverageArrayNew.map((coverageItem: any) => ({
+                component: coverageItem.component,
+                percent: coverageArrayPrev.find(
+                  (prevItem: any) => prevItem.component === coverageItem.component,
+                ).percent,
+              }))
+            }
 
             console.debug("============ entered on diff function")
             coverageDiff = getCoverageDiff(coverageArrayPrev, coverageArrayNew)
@@ -372,8 +378,7 @@ async function deletePreviousComments(octokit: GitHub) {
   return Promise.all(
     data
       .filter(
-        (c) =>
-          c.user.login === "github-actions[bot]" && c.body.startsWith("```diff"),
+        (c) => c.user.login === "github-actions[bot]" && c.body.startsWith("```diff"),
       )
       .map((c) => octokit.issues.deleteComment({ ...context.repo, comment_id: c.id })),
   )
@@ -385,6 +390,22 @@ function getCoverageDiff(
 ): string | undefined {
   const coveragePercentagesPrev = coverageArrayPrev.map((item: any) => item.percent)
   const coveragePercentagesNew = coverageArrayNew.map((item: any) => item.percent)
+  console.debug(
+    "====================== coverageArrayPrev on diff function: %j",
+    coverageArrayPrev,
+  )
+  console.debug(
+    "====================== coverageArrayNew on diff function: %j",
+    coverageArrayNew,
+  )
+  console.debug(
+    "====================== coveragePercentagesPrev: %j",
+    coveragePercentagesPrev,
+  )
+  console.debug(
+    "====================== coveragePercentagesNew: %j",
+    coveragePercentagesNew,
+  )
 
   const isEqual = coveragePercentagesNew.toString() === coveragePercentagesPrev.toString()
   let isMinor = false
@@ -439,6 +460,7 @@ export function getCoverageTable(
   }
   const covMap = createCoverageMap((results.coverageMap as unknown) as CoverageMapData)
   const rows = [["Filename", "Functions Cover Rate", "Uncovered Line(s)"]]
+  let atLeastOneDetectedFile = false
 
   if (!Object.keys(covMap.data).length) {
     console.error("No entries found in coverage data")
@@ -470,20 +492,32 @@ export function getCoverageTable(
         "============ filename on getCoverageTable that matches something on modifiedFiles: %j",
         filename,
       )
+
+      atLeastOneDetectedFile = true
+
       rows.push([
         // filename.replace(cwd, ""),
         // filename.substr(filename.lastIndexOf("/") + 1),
-        filename.match(/\/\w+\/\w+\.js(?=$)/gm) &&
-          filename.match(/\/\w+\/\w+\.js(?=$)/gm)[0],
+        filename.match(/\/\w+\/\w+\/\w+\.js(?=$)/gm) &&
+          filename.match(/\/\w+\/\w+\/\w+\.js(?=$)/gm)[0],
         summary.functions.pct + "%",
         uncoveredLines,
       ])
     }
   }
 
-  return isPrev
-    ? coverageHeaderPrev + table(rows, { align: ["l", "r", "r"] })
-    : coverageHeader + table(rows, { align: ["l", "r", "r"] })
+  /**
+   * Avoid breaking/running coverage if there's no items detected.
+   *
+   * Example scenario: only the test file was modified, and the component lives on a different folder from the test file.
+   */
+  if (!atLeastOneDetectedFile) {
+    return false
+  } else {
+    return isPrev
+      ? coverageHeaderPrev + table(rows, { align: ["l", "r", "r"] })
+      : coverageHeader + table(rows, { align: ["l", "r", "r"] })
+  }
 }
 
 function getCommentPayload(body: any) {
