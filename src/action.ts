@@ -347,7 +347,7 @@ export async function run() {
         }
 
         if (!results.success) {
-          core.setFailed("Some jest tests failed.")
+          // core.setFailed("Some jest tests failed.")
         }
       }
     }
@@ -555,7 +555,7 @@ function getJestCommand(resultsFile: string) {
   let cmd = core.getInput("test-command", { required: false })
   const jestOptions = `--json ${
     shouldCommentCoverage() ? "--coverage" : ""
-  } --outputFile=${resultsFile}`
+  } --outputFile=${resultsFile} --forceExit`
   const isNpm = cmd.startsWith("npm") || cmd.startsWith("npx")
   cmd += (isNpm ? " -- " : " ") + jestOptions
   core.debug("Final test command: " + cmd)
