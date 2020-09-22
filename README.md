@@ -7,4 +7,4 @@ Main features:
 
 ## Coverage example
 
-![Coverage](assets/coverage.png)
+![Coverage](https://i.imgur.com/Ilu4gBe.png)
