@@ -54,7 +54,7 @@ export async function run() {
           modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
           modifiedFiles += data
             .toString()
-            .match(/\/\w+\/\w+\/\w+\/\w+(\.test|)\.js(?=[^(\.snap)])/gm)
+            .match(/src[\/\w]+(\.test|)\.js(?=[^(\.snap)])/gm)
         },
         stderr: (data: Buffer) => {
           modifiedTestFilesError += data.toString()
@@ -484,8 +484,8 @@ export function getCoverageTable(
 
     if (
       modifiedFiles.includes(
-        filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm) &&
-          filename.match(/\/\w+\/\w+\/\w+\/\w+\.js(?=$)/gm)[0],
+        filename.match(/src[\/\w]+\.js(?=$)/gm) &&
+          filename.match(/src[\/\w]+\.js(?=$)/gm)[0],
       )
     ) {
       console.debug(
@@ -564,7 +564,7 @@ function getJestCommand(resultsFile: string) {
   return cmd
 }
 
-function parseResults(resultsFile: string): FormattedTestResults {
+function parseResults(resultsFile: string): any {
   try {
     const results = JSON.parse(readFileSync(resultsFile, "utf-8"))
     return results
