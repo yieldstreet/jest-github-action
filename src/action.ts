@@ -329,6 +329,7 @@ export async function run() {
             )
           }
         } else if (modifiedTestFiles.length > 0) {
+          await deletePreviousComments(octokit)
           testFilesMessage =
             "```diff\n+ Update on test files!\n```\n\n" + getTestFilesMessage()
 
