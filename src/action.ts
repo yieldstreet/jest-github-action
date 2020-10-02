@@ -111,7 +111,14 @@ export async function run() {
     const results = await parseResults(RESULTS_FILE)
 
     if (!results.success) {
-      return core.setFailed("Some jest tests failed.");
+      await deletePreviousComments(octokit)
+      const testsBrokenMessage =
+        "```diff\n+ Tests are broken. Please check the action logs."
+
+      commentPayload = getCommentPayload(testsBrokenMessage)
+      await octokit.issues.createComment(commentPayload)
+
+      return core.setFailed("Tests are broken. Please check the logs above")
     }
 
     if (results !== "empty" && modifiedFiles.length > 0) {
@@ -177,7 +184,6 @@ export async function run() {
           console.debug("============ commentPrev: %j", commentPrev)
 
           if (commentPrev) {
-            // await deletePreviousComments(octokit)
             commentPayloadPrev = getCommentPayload(commentPrev)
 
             const coverageNumbersPrev = commentPayloadPrev.body
@@ -220,7 +226,7 @@ export async function run() {
 
             coverageArrayNew.forEach((itemNew: any, idx: any) => {
               if (itemNew.component !== coverageArrayPrev[idx].component) {
-                hasDifferentOrder = true 
+                hasDifferentOrder = true
               }
             })
 
@@ -497,8 +503,6 @@ export function getCoverageTable(
       atLeastOneDetectedFile = true
 
       rows.push([
-        // filename.replace(cwd, ""),
-        // filename.substr(filename.lastIndexOf("/") + 1),
         filename.match(/src[\/\w]+\.js(?=$)/gm) &&
           filename.match(/src[\/\w]+\.js(?=$)/gm)[0],
         summary.functions.pct + "%",
