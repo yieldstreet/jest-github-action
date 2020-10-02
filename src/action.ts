@@ -110,6 +110,10 @@ export async function run() {
     // Parse results
     const results = await parseResults(RESULTS_FILE)
 
+    if (!results.success) {
+      return core.setFailed("Some jest tests failed.");
+    }
+
     if (results !== "empty" && modifiedFiles.length > 0) {
       coverageHeader = "\n\n**" + currentBranch + " coverage**\n\n"
 
@@ -345,10 +349,6 @@ export async function run() {
             const commentPayload = getCommentPayload(comment)
             await octokit.issues.createComment(commentPayload)
           }
-        }
-
-        if (!results.success) {
-          core.setFailed("Some jest tests failed.")
         }
       }
     }
