@@ -113,7 +113,7 @@ export async function run() {
     if (!results.success) {
       await deletePreviousComments(octokit)
       const testsBrokenMessage =
-        "```diff\n+ Tests are broken. Please check the action logs."
+        "```diff\n- Tests are broken. Please check the action logs."
 
       commentPayload = getCommentPayload(testsBrokenMessage)
       await octokit.issues.createComment(commentPayload)
