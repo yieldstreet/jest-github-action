@@ -8,7 +8,7 @@
 
 ## How to contribute
 
-Create a branch off from develop
+Create a branch off from `master`
 
 Install the modules using npm
 
@@ -20,5 +20,7 @@ Commit your changes and push them
 
 Create a PR on any FE project to test your changes, and remember to edit the workflow file in the FE repo(coverage.yml) so the PR will run the action based on your branch:
 
-Instead of uses: `yieldstreet/jest-github-action@develop` update it to `yieldstreet/jest-github-action@MY_BRANCH_HERE`
+Instead of uses: `yieldstreet/jest-github-action@master` update it to `yieldstreet/jest-github-action@MY_BRANCH_HERE`
+
+When you finish testing your features, feel free to open a PR to `master`
 
