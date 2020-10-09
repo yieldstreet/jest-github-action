@@ -47,6 +47,7 @@ export async function run() {
     // Update local repo with the latest base branch changes
     await exec("git checkout .", [], {})
     await exec("git merge origin/" + baseBranch + " --no-edit", [], {})
+    await exec("yarn install", [], {})
 
     await exec("git diff --name-only origin/" + baseBranch, [], {
       listeners: {
