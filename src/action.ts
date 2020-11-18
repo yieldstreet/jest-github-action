@@ -52,10 +52,12 @@ export async function run() {
     await exec("git diff --name-only origin/" + baseBranch, [], {
       listeners: {
         stdout: (data: Buffer) => {
-          modifiedTestFiles += data.toString().match(/\w+\.test\.js(?=\n)/gm)
+          modifiedTestFiles += data
+            .toString()
+            .match(/\w+(\.test\.dom|\.test)\.(j|t)(sx|s)(?=\n)/gm)
           modifiedFiles += data
             .toString()
-            .match(/src[\/\w]+(\.test|)\.js(?=[^(\.snap)])/gm)
+            .match(/src[\/\w]+(\.test\.dom|\.test|)\.(j|t)(sx|s)(?=[^(\.snap)])/gm)
         },
         stderr: (data: Buffer) => {
           modifiedTestFilesError += data.toString()
@@ -88,7 +90,9 @@ export async function run() {
           modifiedFiles
             .replace("undefined", "")
             .split(",")
-            .map((modifiedFile: any) => modifiedFile.replace(".test", "")),
+            .map((modifiedFile: any) =>
+              modifiedFile.replace(/(\.test\.dom|\.test)/gm, ""),
+            ),
         ),
       ]
     }
@@ -169,8 +173,8 @@ export async function run() {
                 parseFloat(coverageNumberNew.trim().replace("%", "")),
               )
             const coverageNamesNew = commentPayloadNew.body
-              .match(/\/\w+\/\w+\/\w+\.js/gm)
-              .map((coverageName: any) => coverageName.replace(".js", ""))
+              .match(/\/\w+\/\w+\/\w+\.(j|t)(sx|s)/gm)
+              .map((coverageName: any) => coverageName.replace(/\.(j|t)(sx|s)/gm, ""))
 
             coverageNamesNew.forEach((coverageName: any, idx: any) =>
               coverageArrayNew.push({
@@ -193,8 +197,8 @@ export async function run() {
                 parseFloat(coverageNumber.trim().replace("%", "")),
               )
             const coverageNamesPrev = commentPayloadPrev.body
-              .match(/\/\w+\/\w+\/\w+\.js/gm)
-              .map((coverageName: any) => coverageName.replace(".js", ""))
+              .match(/\/\w+\/\w+\/\w+\.(j|t)(sx|s)/gm)
+              .map((coverageName: any) => coverageName.replace(/\.(j|t)(sx|s)/gm, ""))
 
             coverageNamesPrev.forEach((coverageName: any, idx: any) =>
               coverageArrayPrev.push({
@@ -431,10 +435,10 @@ function getCoverageDiff(
     )
 
     if (coverageNumberNew < coveragePercentagesPrev[idx]) {
-      filesAffectedMinor.push(coverageArrayNew[idx].component + ".js")
+      filesAffectedMinor.push(coverageArrayNew[idx].component)
       isMinor = true
     } else if (coverageNumberNew > coveragePercentagesPrev[idx]) {
-      filesAffectedHigher.push(coverageArrayNew[idx].component + ".js")
+      filesAffectedHigher.push(coverageArrayNew[idx].component)
       isHigher = true
     }
   })
@@ -492,8 +496,8 @@ export function getCoverageTable(
 
     if (
       modifiedFiles.includes(
-        filename.match(/src[\/\w]+\.js(?=$)/gm) &&
-          filename.match(/src[\/\w]+\.js(?=$)/gm)[0],
+        filename.match(/src[\/\w]+\.(j|t)(sx|s)(?=$)/gm) &&
+          filename.match(/src[\/\w]+\.(j|t)(sx|s)(?=$)/gm)[0],
       )
     ) {
       console.debug(
@@ -504,8 +508,8 @@ export function getCoverageTable(
       atLeastOneDetectedFile = true
 
       rows.push([
-        filename.match(/src[\/\w]+\.js(?=$)/gm) &&
-          filename.match(/src[\/\w]+\.js(?=$)/gm)[0],
+        filename.match(/src[\/\w]+\.(j|t)(sx|s)(?=$)/gm) &&
+          filename.match(/src[\/\w]+\.(j|t)(sx|s)(?=$)/gm)[0],
         summary.functions.pct + "%",
         uncoveredLines,
       ])
