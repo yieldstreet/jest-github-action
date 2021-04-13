@@ -167,14 +167,18 @@ export async function run() {
             commentPayloadNew = getCommentPayload(comment)
             commentPayload = commentPayloadNew
 
-            const coverageNumbersNew = commentPayloadNew.body
-              .match(/(\d|\d\.\d)+%(?=\s\|\s+(.*)\s\|$)/gm)
-              .map((coverageNumberNew: any) =>
-                parseFloat(coverageNumberNew.trim().replace("%", "")),
-              )
-            const coverageNamesNew = commentPayloadNew.body
-              .match(/\/\w+\/\w+\/\w+\.(j|t)(sx|s)/gm)
-              .map((coverageName: any) => coverageName.replace(/\.(j|t)(sx|s)/gm, ""))
+            const coverageNumbersNew =
+              commentPayloadNew.body.match(/(\d|\d\.\d)+%(?=\s\|\s+(.*)\s\|$)/gm) &&
+              commentPayloadNew.body
+                .match(/(\d|\d\.\d)+%(?=\s\|\s+(.*)\s\|$)/gm)
+                .map((coverageNumberNew: any) =>
+                  parseFloat(coverageNumberNew.trim().replace("%", "")),
+                )
+            const coverageNamesNew =
+              commentPayloadNew.body.match(/\/\w+\/\w+\/\w+\.(j|t)(sx|s)/gm) &&
+              commentPayloadNew.body
+                .match(/\/\w+\/\w+\/\w+\.(j|t)(sx|s)/gm)
+                .map((coverageName: any) => coverageName.replace(/\.(j|t)(sx|s)/gm, ""))
 
             coverageNamesNew.forEach((coverageName: any, idx: any) =>
               coverageArrayNew.push({
@@ -243,7 +247,7 @@ export async function run() {
                 component: coverageItem.component,
                 percent: coverageArrayPrev.find(
                   (prevItem: any) => prevItem.component === coverageItem.component,
-                ).percent,
+                )?.percent,
               }))
             }
 
@@ -282,7 +286,7 @@ export async function run() {
               component: coverageItem.component,
               percent: coverageArrayPrev.find(
                 (prevItem: any) => prevItem.component === coverageItem.component,
-              ).percent,
+              )?.percent,
             }))
 
             console.debug("============ entered on diff function")
